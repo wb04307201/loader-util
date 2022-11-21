@@ -1,6 +1,6 @@
 # loader-util 动态编译、加载、执行工具
 
-[![](https://jitpack.io/v/com.gitee.wb04307201/sql-util.svg)](https://jitpack.io/#com.gitee.wb04307201/sql-util)
+[![](https://jitpack.io/v/com.gitee.wb04307201/loader-util.svg)](https://jitpack.io/#com.gitee.wb04307201/loader-util)
 
 ## 1. DynamicBean 动态编译加载Bean并执行
 
