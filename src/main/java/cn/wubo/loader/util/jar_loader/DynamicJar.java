@@ -25,7 +25,7 @@ public class DynamicJar {
         return new DynamicJar(filePath);
     }
 
-    public void load(String filePath) {
+    public void load() {
         try {
             URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
             Method addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
