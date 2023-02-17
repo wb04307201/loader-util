@@ -49,8 +49,8 @@
 ```java
     @GetMapping(value = "/test/jar")
     public String testJar(){
-        Class<?> clasz = DynamicJar.init("D:\\maven-repository\\repository\\cn\\hutool\\hutool-all\\5.3.2\\hutool-all-5.3.2.jar").load(cn.hutool.core.util.RandomUtil");
-        return (String) MethodUtils.invokeClass(clasz, "randomString", 10);
+        Class<?> clasz = DynamicJar.init("D:\\maven-repository\\repository\\cn\\hutool\\hutool-all\\5.3.2\\hutool-all-5.3.2.jar").load("cn.hutool.core.util.IdUtil");
+        return (String) MethodUtils.invokeClass(clasz, "randomUUID");
     }
 ```
 
