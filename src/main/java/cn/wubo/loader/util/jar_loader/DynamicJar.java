@@ -3,8 +3,6 @@ package cn.wubo.loader.util.jar_loader;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -25,14 +23,12 @@ public class DynamicJar {
         return new DynamicJar(filePath);
     }
 
-    public void load() {
+    public Class<?> load(String fullClassName) {
         try {
-            URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-            Method addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             URL url = new File(filePath).toURI().toURL();
-            addURL.setAccessible(true);
-            addURL.invoke(classLoader, url);
-        } catch (NoSuchMethodException | MalformedURLException | InvocationTargetException | IllegalAccessException e) {
+            URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url});
+            return urlClassLoader.loadClass(fullClassName);
+        } catch (MalformedURLException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }

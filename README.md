@@ -47,5 +47,11 @@
 ## 3. DynamicJar 动态加载外部jar到项目中
 > 如果动态加载bean和动态加载class执行时用到了外呼jar，可预先将jar加载到项目中
 ```java
-        DynamicJar.init("D:\\maven-repository\\repository\\cn\\hutool\\hutool-all\\5.3.2\\hutool-all-5.3.2.jar").load();
+    @GetMapping(value = "/test/jar")
+    public String testJar(){
+        Class<?> clasz = DynamicJar.init("D:\\maven-repository\\repository\\cn\\hutool\\hutool-all\\5.3.2\\hutool-all-5.3.2.jar").load(cn.hutool.core.util.RandomUtil");
+        return (String) MethodUtils.invokeClass(clasz, "randomString", 10);
+    }
 ```
+
+[示例代码](https://gitee.com/wb04307201/loader-util-test)
