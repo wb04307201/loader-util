@@ -2,6 +2,26 @@
 
 [![](https://jitpack.io/v/com.gitee.wb04307201/loader-util.svg)](https://jitpack.io/#com.gitee.wb04307201/loader-util)
 
+## 第一步 增加 JitPack 仓库
+```xml
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+```
+
+## 第二步 引入jar
+```xml
+	<dependency>
+	    <groupId>com.gitee.wb04307201</groupId>
+	    <artifactId>loader-util</artifactId>
+	    <version>Tag</version>
+	</dependency>
+```
+
+## 第三步 如何使用
 ## 1. DynamicBean 动态编译加载Bean并执行
 
 > 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.bean_loader.SpringContextUtil文件
