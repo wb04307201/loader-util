@@ -8,16 +8,14 @@ import java.lang.reflect.Method;
 
 public class AspectHandler implements MethodInterceptor {
 
-    Object target;
     IAspect aspect;
 
-    public AspectHandler(Object target, IAspect aspect) {
-        this.target = target;
+    public AspectHandler(IAspect aspect) {
         this.aspect = aspect;
     }
 
     @Override
-    public Object intercept(Object obj, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+    public Object intercept(Object target, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
         Object result;
         try {
             aspect.before(target, method, args);
