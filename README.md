@@ -73,7 +73,7 @@
     }
 ```
 
-## 4. proxy 动态切面日志
+## 4. proxy 动态代理切面
 ```java
     @GetMapping(value = "/testAspect")
     public String testAspect() {
