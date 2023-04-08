@@ -74,5 +74,14 @@
 ```
 
 ## 4. proxy 动态切面日志
+```java
+    @GetMapping(value = "/testAspect")
+    public String testAspect() {
+        DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, fullClassName).compiler();
+        Class<?> clasz = dynamicClass.load();
+        Object obj = MethodUtils.proxy(clasz);
+        return (String) MethodUtils.invokeClass(obj, methodName, "world");
+    }
+```
 
 [示例代码](https://gitee.com/wb04307201/loader-util-test)
