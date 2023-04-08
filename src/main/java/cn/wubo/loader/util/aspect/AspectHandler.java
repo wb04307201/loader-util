@@ -1,25 +1,30 @@
 package cn.wubo.loader.util.aspect;
 
-import java.lang.reflect.InvocationHandler;
+
+import org.springframework.cglib.proxy.MethodInterceptor;
+import org.springframework.cglib.proxy.MethodProxy;
+
 import java.lang.reflect.Method;
 
-public class AspectHandler implements InvocationHandler {
+public class AspectHandler implements MethodInterceptor {
 
+    Object target;
     IAspect aspect;
 
-    public AspectHandler(IAspect aspect) {
+    public AspectHandler(Object target, IAspect aspect) {
+        this.target = target;
         this.aspect = aspect;
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object intercept(Object obj, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
         Object result;
         try {
-            aspect.before(proxy, method, args);
-            result = method.invoke(proxy, args);
-            aspect.after(proxy, method, args, result);
+            aspect.before(target, method, args);
+            result = method.invoke(target, args);
+            aspect.after(target, method, args, result);
         } catch (Throwable cause) {
-            aspect.afterThrow(proxy, method, args, cause);
+            aspect.afterThrow(target, method, args, cause);
             throw cause;
         }
         return result;
