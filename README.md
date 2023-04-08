@@ -64,8 +64,7 @@
     }
 ```
 
-## 3. DynamicJar 动态加载外部jar到项目中
-> 如果动态加载bean和动态加载class执行时用到了外呼jar，可预先将jar加载到项目中
+## 3. DynamicJar 动态加载外部jar并执行
 ```java
     @GetMapping(value = "/test/jar")
     public String testJar(){
@@ -73,5 +72,7 @@
         return (String) MethodUtils.invokeClass(clasz, "randomUUID");
     }
 ```
+
+## 4. proxy 动态切面日志
 
 [示例代码](https://gitee.com/wb04307201/loader-util-test)
