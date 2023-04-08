@@ -98,7 +98,7 @@ public class MethodUtils {
         try {
             final Enhancer enhancer = new Enhancer();
             enhancer.setSuperclass(clazz);
-            enhancer.setCallback(new AspectHandler(aspectClass.newInstance()));
+            enhancer.setCallback(new AspectHandler(clazz.newInstance(), aspectClass.newInstance()));
             return enhancer.create();
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);

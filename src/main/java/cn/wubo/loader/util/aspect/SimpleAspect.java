@@ -15,7 +15,7 @@ public class SimpleAspect implements IAspect {
 
     @Override
     public void before(Object target, Method method, Object[] args) {
-        sw = new StopWatch(method.getClass().getName() + " " + method.getName() + " " + System.currentTimeMillis());
+        sw = new StopWatch(target.getClass().getName() + " " + method.getName());
         log.info("SimpleAspect before " + sw.getId());
         sw.start();
     }
