@@ -20,9 +20,9 @@ public class MethodUtils {
      * 执行类中的方法
      *
      * @param clazz      目标类
-     * @param methodName 方法名
+     * @param methodName 目标方法名
      * @param args       参数
-     * @return 返回值
+     * @return 返回值，Object类型
      */
     public static Object invokeClass(Class<?> clazz, String methodName, Object... args) {
         try {
@@ -41,16 +41,16 @@ public class MethodUtils {
      * 执行对象中的方法
      *
      * @param target     目标对象
-     * @param methodName 方法名
+     * @param methodName 目标方法名
      * @param args       参数
-     * @return 返回值
+     * @return 返回值，泛型
      */
-    public static Object invokeClass(Object target, String methodName, Object... args) {
+    public static <T, R> Object invokeClass(T target, String methodName, Object... args) {
         try {
             Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});
             Method method = target.getClass().getDeclaredMethod(methodName, parameterTypes);
             method.setAccessible(true);
-            return method.invoke(target, args);
+            return (R) method.invoke(target, args);
         } catch (IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {
             throw new RuntimeException(e);
@@ -60,12 +60,25 @@ public class MethodUtils {
     /**
      * 执行Bean中的方法
      *
-     * @param beanName   bean名称
-     * @param methodName 方法名
+     * @param beanName   目标bean名称
+     * @param methodName 目标方法名
      * @param args       参数
-     * @return 返回值
+     * @return 返回值，泛型
      */
-    public static Object invokeBean(String beanName, String methodName, Object... args) {
+    public static <R> R invokeBean(String beanName, String methodName, Object... args) {
+        return (R) invokeBeanReturnObject(beanName, methodName, args);
+    }
+
+
+    /**
+     * 执行Bean中的方法
+     *
+     * @param beanName   目标bean名称
+     * @param methodName 目标方法名
+     * @param args       参数
+     * @return 返回值, Object类型
+     */
+    public static Object invokeBeanReturnObject(String beanName, String methodName, Object... args) {
         try {
             Object obj = SpringContextUtil.getBean(beanName);
             Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});
@@ -80,28 +93,64 @@ public class MethodUtils {
     /**
      * 使用切面代理对象，默认使用SimpleAspect切面
      *
-     * @param clazz 目标对象
-     * @return 被代理的切面
+     * @param clazz 目标类
+     * @return 被代理的切面，Object类型
      */
     public static Object proxy(Class<?> clazz) {
-        return proxy(clazz, SimpleAspect.class);
+        return proxy(clazz, new SimpleAspect());
+    }
+
+    /**
+     * 使用切面代理对象，默认使用SimpleAspect切面
+     *
+     * @param target 目标对象
+     * @return 被代理的切面，泛型
+     */
+    public static <T> T proxy(T target) {
+        return proxy(target, new SimpleAspect());
     }
 
     /**
      * 使用切面代理对象
      *
-     * @param clazz       目标对象类
-     * @param aspectClass 切面对象类
-     * @return 被代理的切面
+     * @param clazz       目标类
+     * @param aspectClass 切面类
+     * @return 被代理的切面，Object类型
      */
     public static Object proxy(Class<?> clazz, Class<? extends IAspect> aspectClass) {
         try {
-            final Enhancer enhancer = new Enhancer();
-            enhancer.setSuperclass(clazz);
-            enhancer.setCallback(new AspectHandler(clazz.newInstance(), aspectClass.newInstance()));
-            return enhancer.create();
+            return proxy(clazz.newInstance(), aspectClass.newInstance());
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 使用切面代理对象
+     *
+     * @param target      目标对象
+     * @param aspectClass 切面类
+     * @return 被代理的切面，泛型
+     */
+    public static <T> T proxy(T target, Class<? extends IAspect> aspectClass) {
+        try {
+            return proxy(target, aspectClass.newInstance());
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 使用切面代理对象
+     *
+     * @param target       目标对象
+     * @param aspectTarget 切面对象
+     * @return 被代理的切面
+     */
+    public static <T, E extends IAspect> T proxy(T target, E aspectTarget) {
+        final Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(target.getClass());
+        enhancer.setCallback(new AspectHandler(target, aspectTarget));
+        return (T) enhancer.create();
     }
 }
