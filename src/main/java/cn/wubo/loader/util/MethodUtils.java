@@ -151,9 +151,6 @@ public class MethodUtils {
      * @return 被代理的切面
      */
     public static <T, E extends IAspect> T proxy(T target, E aspectTarget) {
-        Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(target.getClass());
-        enhancer.setCallback(new AspectHandler(target, aspectTarget));
-        return (T) enhancer.create();
+        return (T) Enhancer.create(target.getClass(), new AspectHandler(target, aspectTarget));
     }
 }
