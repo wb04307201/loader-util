@@ -4,6 +4,7 @@ import cn.wubo.loader.util.aspect.AspectHandler;
 import cn.wubo.loader.util.aspect.IAspect;
 import cn.wubo.loader.util.aspect.SimpleAspect;
 import cn.wubo.loader.util.bean_loader.SpringContextUtil;
+import cn.wubo.loader.util.class_loader.DynamicClass;
 import org.springframework.cglib.proxy.Enhancer;
 
 import java.lang.reflect.InvocationTargetException;
@@ -95,23 +96,23 @@ public class MethodUtils {
     /**
      * 使用切面代理对象，默认使用SimpleAspect切面
      *
-     * @param targetClass 目标类
+     * @param target 目标对象
      * @return 被代理的切面，Object类型
      */
-    public static <T> T proxy(Class<T> targetClass) {
-        return proxy(targetClass, new SimpleAspect());
+    public static <T> T proxy(T target) {
+        return proxy(target, new SimpleAspect());
     }
 
     /**
      * 使用切面代理对象
      *
-     * @param targetClass 目标类
+     * @param target      目标对象
      * @param aspectClass 切面类
      * @return 被代理的切面，Object类型
      */
-    public static <T, E extends IAspect> T proxy(Class<T> targetClass, Class<E> aspectClass) {
+    public static <T, E extends IAspect> T proxy(T target, Class<E> aspectClass) {
         try {
-            return proxy(targetClass, aspectClass.newInstance());
+            return proxy(target, aspectClass.newInstance());
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -120,14 +121,14 @@ public class MethodUtils {
     /**
      * 使用切面代理对象
      *
-     * @param targetClass  目标类
+     * @param target       目标对象
      * @param aspectTarget 切面对象
      * @return 被代理的切面
      */
-    public static <T, E extends IAspect> T proxy(Class<T> targetClass, E aspectTarget) {
+    public static <T, E extends IAspect> T proxy(T target, E aspectTarget) {
         Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(targetClass);
-        enhancer.setCallback(new AspectHandler(targetClass, aspectTarget));
+        enhancer.setSuperclass(target.getClass());
+        enhancer.setCallback(new AspectHandler(target, aspectTarget));
         return (T) enhancer.create();
     }
 }
