@@ -13,6 +13,7 @@ public class DynamicBean {
     }
 
     public static DynamicBean init(DynamicClass dynamicClass) {
+        log.debug("初始化bean fullClassName:{}", dynamicClass.getFullClassName());
         return new DynamicBean(dynamicClass);
     }
 

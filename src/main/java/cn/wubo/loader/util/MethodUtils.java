@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
  */
 public class MethodUtils {
 
+    private MethodUtils() {
+    }
+
     /**
      * 执行类中的方法
      *
@@ -45,7 +48,7 @@ public class MethodUtils {
      * @param args       参数
      * @return 返回值，泛型
      */
-    public static <T, R> Object invokeClass(T target, String methodName, Object... args) {
+    public static <T, R> R invokeClass(T target, String methodName, Object... args) {
         try {
             Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});
             Method method = target.getClass().getDeclaredMethod(methodName, parameterTypes);
@@ -148,7 +151,7 @@ public class MethodUtils {
      * @return 被代理的切面
      */
     public static <T, E extends IAspect> T proxy(T target, E aspectTarget) {
-        final Enhancer enhancer = new Enhancer();
+        Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(target.getClass());
         enhancer.setCallback(new AspectHandler(target, aspectTarget));
         return (T) enhancer.create();

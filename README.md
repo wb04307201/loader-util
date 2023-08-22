@@ -59,9 +59,9 @@
                 "}";
         String fullClassName = "cn.wubo.loader.util.TestClass";
         String methodName = "testMethod";
-
         DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, fullClassName).compiler();
-        return (String) MethodUtils.invokeClass(dynamicClass.load(), methodName, "world");
+        Class<?> clasz = dynamicClass.load();
+        return (String) MethodUtils.invokeClass(clasz, methodName, "world");
     }
 ```
 
@@ -74,16 +74,43 @@
     }
 ```
 
-## 4. proxy 动态代理切面
+## 4. DynamicGroovy 动态编译加载Groovy并执行
+```java
+    @GetMapping(value = "/loadAndInvokeGroovy")
+    public String loadAndInvokeGroovy() {
+        String javaSourceCode = "package cn.wubo.loader.util;\n" +
+                "\n" +
+                "public class TestClass {\n" +
+                "    \n" +
+                "    public String testMethod(String name){\n" +
+                "        return String.format(\"Hello,%s!\",name);\n" +
+                "    }\n" +
+                "}";
+        String methodName = "testMethod";
+        Class<?> clasz = DynamicGroovy.init(javaSourceCode).load();
+        return (String) MethodUtils.invokeClass(clasz, methodName, "world");
+    }
+```
+
+## 5. proxy 动态代理切面
 ```java
     @GetMapping(value = "/testAspect")
     public String testAspect() {
+        String javaSourceCode = "package cn.wubo.loader.util;\n" +
+                "\n" +
+                "public class TestClass {\n" +
+                "    \n" +
+                "    public String testMethod(String name){\n" +
+                "        return String.format(\"Hello,%s!\",name);\n" +
+                "    }\n" +
+                "}";
+        String fullClassName = "cn.wubo.loader.util.TestClass";
+        String methodName = "testMethod";
         DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, fullClassName).compiler();
         Class<?> clasz = dynamicClass.load();
         Object obj = MethodUtils.proxy(clasz);
         return (String) MethodUtils.invokeClass(obj, methodName, "world");
     }
-```
 输出示例
 ```text
 2023-04-08 21:22:14.174  INFO 32660 --- [nio-8080-exec-1] cn.wubo.loader.util.aspect.SimpleAspect  : SimpleAspect before cn.wubo.loader.util.TestClass testMethod
