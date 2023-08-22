@@ -108,9 +108,10 @@
         String methodName = "testMethod";
         DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, fullClassName).compiler();
         Class<?> clasz = dynamicClass.load();
-        Object obj = MethodUtils.proxy(clasz);
+        Object obj = MethodUtils.proxy(clasz.newInstance());
         return (String) MethodUtils.invokeClass(obj, methodName, "world");
     }
+```
 输出示例
 ```text
 2023-04-08 21:22:14.174  INFO 32660 --- [nio-8080-exec-1] cn.wubo.loader.util.aspect.SimpleAspect  : SimpleAspect before cn.wubo.loader.util.TestClass testMethod
