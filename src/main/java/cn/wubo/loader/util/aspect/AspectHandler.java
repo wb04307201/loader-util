@@ -21,7 +21,7 @@ public class AspectHandler implements MethodInterceptor {
         Object result;
         try {
             aspect.before(target, method, args);
-            result = method.invoke(target, args);
+            result = method.invoke(obj, args);
             aspect.after(target, method, args, result);
         } catch (Throwable cause) {
             aspect.afterThrow(target, method, args, cause);

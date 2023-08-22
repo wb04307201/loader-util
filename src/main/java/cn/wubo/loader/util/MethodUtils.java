@@ -54,8 +54,7 @@ public class MethodUtils {
             Method method = target.getClass().getDeclaredMethod(methodName, parameterTypes);
             method.setAccessible(true);
             return (R) method.invoke(target, args);
-        } catch (IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException e) {
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
@@ -96,33 +95,23 @@ public class MethodUtils {
     /**
      * 使用切面代理对象，默认使用SimpleAspect切面
      *
-     * @param clazz 目标类
+     * @param targetClass 目标类
      * @return 被代理的切面，Object类型
      */
-    public static Object proxy(Class<?> clazz) {
-        return proxy(clazz, new SimpleAspect());
-    }
-
-    /**
-     * 使用切面代理对象，默认使用SimpleAspect切面
-     *
-     * @param target 目标对象
-     * @return 被代理的切面，泛型
-     */
-    public static <T> T proxy(T target) {
-        return proxy(target, new SimpleAspect());
+    public static <T> T proxy(Class<T> targetClass) {
+        return proxy(targetClass, new SimpleAspect());
     }
 
     /**
      * 使用切面代理对象
      *
-     * @param clazz       目标类
+     * @param targetClass 目标类
      * @param aspectClass 切面类
      * @return 被代理的切面，Object类型
      */
-    public static Object proxy(Class<?> clazz, Class<? extends IAspect> aspectClass) {
+    public static <T, E extends IAspect> T proxy(Class<T> targetClass, Class<E> aspectClass) {
         try {
-            return proxy(clazz.newInstance(), aspectClass.newInstance());
+            return proxy(targetClass, aspectClass.newInstance());
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -131,26 +120,14 @@ public class MethodUtils {
     /**
      * 使用切面代理对象
      *
-     * @param target      目标对象
-     * @param aspectClass 切面类
-     * @return 被代理的切面，泛型
-     */
-    public static <T> T proxy(T target, Class<? extends IAspect> aspectClass) {
-        try {
-            return proxy(target, aspectClass.newInstance());
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * 使用切面代理对象
-     *
-     * @param target       目标对象
+     * @param targetClass  目标类
      * @param aspectTarget 切面对象
      * @return 被代理的切面
      */
-    public static <T, E extends IAspect> T proxy(T target, E aspectTarget) {
-        return (T) Enhancer.create(target.getClass(), new AspectHandler(target, aspectTarget));
+    public static <T, E extends IAspect> T proxy(Class<T> targetClass, E aspectTarget) {
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(targetClass);
+        enhancer.setCallback(new AspectHandler(targetClass, aspectTarget));
+        return (T) enhancer.create();
     }
 }
