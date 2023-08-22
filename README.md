@@ -20,6 +20,7 @@
 	    <version>Tag</version>
 	</dependency>
 ```
+版本请从[jitpack](https://jitpack.io/#com.gitee.wb04307201/loader-util)或者当前仓库发行版获取
 
 ## 第三步 如何使用
 ## 1. DynamicBean 动态编译加载Bean并执行
