@@ -1,6 +1,7 @@
 package cn.wubo.loader.util.bean_loader;
 
 import cn.wubo.loader.util.class_loader.DynamicClass;
+import cn.wubo.loader.util.SpringContextUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -18,12 +19,12 @@ public class DynamicBean {
     }
 
     public String load() {
-        String beanName = SpringContextUtil.beanName(dynamicClass.getFullClassName());
+        String beanName = SpringContextUtils.beanName(dynamicClass.getFullClassName());
         //销毁Bean
-        SpringContextUtil.destroy(beanName);
+        SpringContextUtils.destroy(beanName);
         //每次都是new新的ClassLoader对象
         Class<?> type = dynamicClass.compiler().load();
-        SpringContextUtil.registerSingleton(type);
+        SpringContextUtils.registerSingleton(type);
         return beanName;
     }
 }

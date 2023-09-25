@@ -3,8 +3,7 @@ package cn.wubo.loader.util;
 import cn.wubo.loader.util.aspect.AspectHandler;
 import cn.wubo.loader.util.aspect.IAspect;
 import cn.wubo.loader.util.aspect.SimpleAspect;
-import cn.wubo.loader.util.bean_loader.SpringContextUtil;
-import cn.wubo.loader.util.class_loader.DynamicClass;
+import cn.wubo.loader.util.exception.LoaderRuntimeException;
 import org.springframework.cglib.proxy.Enhancer;
 
 import java.lang.reflect.InvocationTargetException;
@@ -37,7 +36,7 @@ public class MethodUtils {
             return method.invoke(o, args);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            throw new LoaderRuntimeException(e.getMessage(),e);
         }
     }
 
@@ -56,7 +55,7 @@ public class MethodUtils {
             method.setAccessible(true);
             return (R) method.invoke(target, args);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            throw new LoaderRuntimeException(e.getMessage(),e);
         }
     }
 
@@ -83,13 +82,13 @@ public class MethodUtils {
      */
     public static Object invokeBeanReturnObject(String beanName, String methodName, Object... args) {
         try {
-            Object obj = SpringContextUtil.getBean(beanName);
+            Object obj = SpringContextUtils.getBean(beanName);
             Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});
             Method method = obj.getClass().getMethod(methodName, parameterTypes);
             method.setAccessible(true);
             return method.invoke(obj, args);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new LoaderRuntimeException(e.getMessage(),e);
         }
     }
 
@@ -114,7 +113,7 @@ public class MethodUtils {
         try {
             return proxy(target, aspectClass.newInstance());
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new LoaderRuntimeException(e.getMessage(),e);
         }
     }
 

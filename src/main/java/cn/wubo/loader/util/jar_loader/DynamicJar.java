@@ -1,5 +1,6 @@
 package cn.wubo.loader.util.jar_loader;
 
+import cn.wubo.loader.util.exception.LoaderRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -29,7 +30,7 @@ public class DynamicJar {
             URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url});
             return urlClassLoader.loadClass(fullClassName);
         } catch (MalformedURLException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
 }

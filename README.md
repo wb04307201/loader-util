@@ -17,15 +17,14 @@
 	<dependency>
 	    <groupId>com.gitee.wb04307201</groupId>
 	    <artifactId>loader-util</artifactId>
-	    <version>Tag</version>
+	    <version>1.0.4</version>
 	</dependency>
 ```
-版本请从[jitpack](https://jitpack.io/#com.gitee.wb04307201/loader-util)或者当前仓库发行版获取
 
 ## 第三步 如何使用
 ## 1. DynamicBean 动态编译加载Bean并执行
 
-> 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.bean_loader.SpringContextUtil文件
+> 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.SpringContextUtils文件
 
 ```java
     @GetMapping(value = "/test/bean")
@@ -92,7 +91,38 @@
     }
 ```
 
-## 5. proxy 动态代理切面
+## 5. DynamicController 动态编译加载Controller并执行
+```java
+    @GetMapping(value = "/loadController")
+    public String loadController() {
+        String fullClassName = "cn.wubo.loaderutiltest.DemoController";
+        String javaSourceCode = "package cn.wubo.loaderutiltest;\n" +
+                "\n" +
+                "import org.springframework.web.bind.annotation.GetMapping;\n" +
+                "import org.springframework.web.bind.annotation.RequestMapping;\n" +
+                "import org.springframework.web.bind.annotation.RequestParam;\n" +
+                "import org.springframework.web.bind.annotation.RestController;\n" +
+                "\n" +
+                "@RestController\n" +
+                "@RequestMapping(value = \"test\")\n" +
+                "public class DemoController {\n" +
+                "\n" +
+                "    @GetMapping(value = \"hello\")\n" +
+                "    public String testMethod(@RequestParam String name) {\n" +
+                "        return String.format(\"Hello,%s!\", name);\n" +
+                "    }\n" +
+                "}";
+        return DynamicController.init(DynamicClass.init(javaSourceCode, fullClassName)).load();
+    }
+```
+```http request
+GET http://localhost:8080/test/hello?name=world
+Accept: application/json
+
+Hello,world!
+```
+
+## 6. proxy 动态代理切面
 ```java
     @GetMapping(value = "/testAspect")
     public String testAspect() {

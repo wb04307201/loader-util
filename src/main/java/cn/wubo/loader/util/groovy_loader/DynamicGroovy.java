@@ -1,6 +1,7 @@
 package cn.wubo.loader.util.groovy_loader;
 
 
+import cn.wubo.loader.util.exception.LoaderRuntimeException;
 import groovy.lang.GroovyClassLoader;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +25,7 @@ public class DynamicGroovy {
         try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader()) {
             return groovyClassLoader.parseClass(javaSourceCode);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
 }
