@@ -5,26 +5,26 @@
 ## 第一步 增加 JitPack 仓库
 ```xml
     <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
 ```
 
 ## 第二步 引入jar
 ```xml
 	<dependency>
-	    <groupId>com.gitee.wb04307201</groupId>
-	    <artifactId>loader-util</artifactId>
-	    <version>1.0.3</version>
-	</dependency>
+    <groupId>com.gitee.wb04307201</groupId>
+    <artifactId>loader-util</artifactId>
+    <version>1.0.4</version>
+</dependency>
 ```
 
 ## 第三步 如何使用
 ## 1. DynamicBean 动态编译加载Bean并执行
 
-> 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.bean_loader.SpringContextUtil文件
+> 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.SpringContextUtils文件
 
 ```java
     @GetMapping(value = "/test/bean")
@@ -91,25 +91,56 @@
     }
 ```
 
-## 5. proxy 动态代理切面
+## 5. DynamicController 动态编译加载Controller并执行
 ```java
-    @GetMapping(value = "/testAspect")
-    public String testAspect() {
-        String javaSourceCode = "package cn.wubo.loader.util;\n" +
+    @GetMapping(value = "/loadController")
+    public String loadController() {
+        String fullClassName = "cn.wubo.loaderutiltest.DemoController";
+        String javaSourceCode = "package cn.wubo.loaderutiltest;\n" +
                 "\n" +
-                "public class TestClass {\n" +
-                "    \n" +
-                "    public String testMethod(String name){\n" +
-                "        return String.format(\"Hello,%s!\",name);\n" +
+                "import org.springframework.web.bind.annotation.GetMapping;\n" +
+                "import org.springframework.web.bind.annotation.RequestMapping;\n" +
+                "import org.springframework.web.bind.annotation.RequestParam;\n" +
+                "import org.springframework.web.bind.annotation.RestController;\n" +
+                "\n" +
+                "@RestController\n" +
+                "@RequestMapping(value = \"test\")\n" +
+                "public class DemoController {\n" +
+                "\n" +
+                "    @GetMapping(value = \"hello\")\n" +
+                "    public String testMethod(@RequestParam String name) {\n" +
+                "        return String.format(\"Hello,%s!\", name);\n" +
                 "    }\n" +
                 "}";
+        return DynamicController.init(DynamicClass.init(javaSourceCode, fullClassName)).load();
+    }
+```
+```http request
+GET http://localhost:8080/test/hello?name=world
+Accept: application/json
+
+Hello,world!
+```
+
+## 6. proxy 动态代理切面
+```java
+    @GetMapping(value = "/testAspect")
+public String testAspect() {
+        String javaSourceCode = "package cn.wubo.loader.util;\n" +
+        "\n" +
+        "public class TestClass {\n" +
+        "    \n" +
+        "    public String testMethod(String name){\n" +
+        "        return String.format(\"Hello,%s!\",name);\n" +
+        "    }\n" +
+        "}";
         String fullClassName = "cn.wubo.loader.util.TestClass";
         String methodName = "testMethod";
         DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, fullClassName).compiler();
         Class<?> clasz = dynamicClass.load();
         Object obj = MethodUtils.proxy(clasz.newInstance());
         return (String) MethodUtils.invokeClass(obj, methodName, "world");
-    }
+        }
 ```
 输出示例
 ```text
