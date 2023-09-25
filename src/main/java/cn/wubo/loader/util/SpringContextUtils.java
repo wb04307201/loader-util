@@ -1,4 +1,4 @@
-package cn.wubo.loader.util.bean_loader;
+package cn.wubo.loader.util;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class SpringContextUtil implements BeanFactoryAware {
+public class SpringContextUtils implements BeanFactoryAware {
 
     public static DefaultListableBeanFactory listableBeanFactory;
 

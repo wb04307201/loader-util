@@ -1,5 +1,6 @@
 package cn.wubo.loader.util.class_loader;
 
+import cn.wubo.loader.util.exception.LoaderRuntimeException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -134,6 +135,7 @@ public class DynamicClass {
 
     /**
      * 编译
+     *
      * @return
      */
     public DynamicClass compiler() {
@@ -144,8 +146,7 @@ public class DynamicClass {
         JavaMemSource file = new JavaMemSource(fullClassName, javaSourceCode);
         Iterable<? extends JavaFileObject> compilationUnits = Collections.singletonList(file);
         log.debug("获取编译任务");
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticCollector,
-                options, null, compilationUnits);
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticCollector, options, null, compilationUnits);
         log.debug("执行编译");
         if (Boolean.TRUE.equals(task.call())) {
             log.debug("编译成功");
@@ -156,13 +157,14 @@ public class DynamicClass {
                 message.append("\r\n").append(diagnostics.toString());
             }
             log.debug("编译失败 {}", message);
-            throw new RuntimeException(message.toString());
+            throw new LoaderRuntimeException(message.toString());
         }
         return this;
     }
 
     /**
      * 加载
+     *
      * @return
      */
     public Class<?> load() {
@@ -170,7 +172,7 @@ public class DynamicClass {
             DynamicClassLoader myClassLoader = new DynamicClassLoader(classData);
             return myClassLoader.loadClass(fullClassName);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
 }
