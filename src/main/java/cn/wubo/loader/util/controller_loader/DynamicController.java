@@ -36,8 +36,8 @@ public class DynamicController {
         try {
             Method method = requestMappingHandlerMapping.getClass().getSuperclass().getSuperclass().getDeclaredMethod("detectHandlerMethods", Object.class);
             method.setAccessible(true);
-            method.invoke(requestMappingHandlerMapping, type);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            method.invoke(requestMappingHandlerMapping, type.newInstance());
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
             throw new LoaderRuntimeException(e.getMessage(), e);
         }
         return beanName;
