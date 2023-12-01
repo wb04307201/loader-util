@@ -108,7 +108,7 @@
                 "public class DemoController {\n" +
                 "\n" +
                 "    @GetMapping(value = \"hello\")\n" +
-                "    public String testMethod(@RequestParam(value="name") String name) {\n" +
+                "    public String testMethod(@RequestParam(value=\"name\") String name) {\n" +
                 "        return String.format(\"Hello,%s!\", name);\n" +
                 "    }\n" +
                 "}";
