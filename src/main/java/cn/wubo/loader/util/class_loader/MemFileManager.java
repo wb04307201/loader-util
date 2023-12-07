@@ -25,9 +25,19 @@ public class MemFileManager extends ForwardingJavaFileManager<JavaFileManager> {
 		return javaMemClass;
 	}
 	
+	/**
+	 * 根据给定参数获取用于输出Java代码的JavaFileObject对象。
+	 *
+	 * @param location 代码发生的位置
+	 * @param className 类名
+	 * @param kind Java文件对象的类型
+	 * @param sibling 与新创建的JavaFileObject具有相同父级文件对象的兄弟文件对象
+	 * @return 用于输出Java代码的JavaFileObject对象
+	 */
 	@Override
 	public JavaFileObject getJavaFileForOutput(Location location, String className, JavaFileObject.Kind kind, FileObject sibling) {
-		javaMemClass = new JavaMemClass(className, kind);
-		return javaMemClass;
+	    javaMemClass = new JavaMemClass(className, kind);
+	    return javaMemClass;
 	}
+
 }

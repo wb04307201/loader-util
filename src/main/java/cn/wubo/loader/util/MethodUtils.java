@@ -29,16 +29,17 @@ public class MethodUtils {
      */
     public static Object invokeClass(Class<?> clazz, String methodName, Object... args) {
         try {
-            Object o = clazz.newInstance();
-            Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});
-            Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
-            method.setAccessible(true);
-            return method.invoke(o, args);
+            Object o = clazz.newInstance();  // 创建目标类的实例对象
+            Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});  // 获取参数的类型
+            Method method = clazz.getDeclaredMethod(methodName, parameterTypes);  // 获取目标方法
+            method.setAccessible(true);  // 设置方法可访问
+            return method.invoke(o, args);  // 调用目标方法并返回结果
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {
-            throw new LoaderRuntimeException(e.getMessage(),e);
+            throw new LoaderRuntimeException(e.getMessage(), e);  // 抛出运行时异常
         }
     }
+
 
     /**
      * 执行对象中的方法
@@ -50,14 +51,19 @@ public class MethodUtils {
      */
     public static <T, R> R invokeClass(T target, String methodName, Object... args) {
         try {
+            // 获取参数类型数组
             Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});
+            // 获取目标对象对应方法的实例
             Method method = target.getClass().getDeclaredMethod(methodName, parameterTypes);
+            // 设置方法可访问性
             method.setAccessible(true);
+            // 调用目标方法并返回结果
             return (R) method.invoke(target, args);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new LoaderRuntimeException(e.getMessage(),e);
+            throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
+
 
     /**
      * 执行Bean中的方法
@@ -88,7 +94,7 @@ public class MethodUtils {
             method.setAccessible(true);
             return method.invoke(obj, args);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new LoaderRuntimeException(e.getMessage(),e);
+            throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
 
@@ -102,6 +108,7 @@ public class MethodUtils {
         return proxy(target, new SimpleAspect());
     }
 
+
     /**
      * 使用切面代理对象
      *
@@ -113,9 +120,10 @@ public class MethodUtils {
         try {
             return proxy(target, aspectClass.newInstance());
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new LoaderRuntimeException(e.getMessage(),e);
+            throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
+
 
     /**
      * 使用切面代理对象
@@ -130,4 +138,5 @@ public class MethodUtils {
         enhancer.setCallback(new AspectHandler(target, aspectTarget));
         return (T) enhancer.create();
     }
+
 }

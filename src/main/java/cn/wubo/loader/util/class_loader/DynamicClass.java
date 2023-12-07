@@ -26,10 +26,17 @@ public class DynamicClass {
         this.fullClassName = fullClassName;
     }
 
+    /**
+     * 初始化一个DynamicClass对象
+     * @param javaSourceCode Java源代码字符串
+     * @param fullClassName 完整的类名
+     * @return 初始化后的DynamicClass对象
+     */
     public static DynamicClass init(String javaSourceCode, String fullClassName) {
         log.debug("初始化class javaSourceCode:{} fullClassName:{}", javaSourceCode, fullClassName);
         return new DynamicClass(javaSourceCode, fullClassName);
     }
+
 
     /**
      * -cp <目录和 zip/jar 文件的类搜索路径>
@@ -133,46 +140,72 @@ public class DynamicClass {
         return this;
     }
 
+
     /**
-     * 编译
+     * 编译方法
      *
-     * @return
+     * @return 返回DynamicClass对象
      */
     public DynamicClass compiler() {
         log.debug("开始执行编译");
+
+        // 获取Java编译器
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+        // 创建诊断收集器
         DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
+
+        // 创建内存文件管理器
         MemFileManager fileManager = new MemFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null));
+
+        // 创建JavaMemSource对象
         JavaMemSource file = new JavaMemSource(fullClassName, javaSourceCode);
+
+        // 创建编译单元Iterable
         Iterable<? extends JavaFileObject> compilationUnits = Collections.singletonList(file);
+
         log.debug("获取编译任务");
+        // 获取编译任务
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticCollector, options, null, compilationUnits);
+
         log.debug("执行编译");
+        // 执行编译任务
         if (Boolean.TRUE.equals(task.call())) {
             log.debug("编译成功");
+            // 如果编译成功，将生成的Java类数据保存到classData变量中
             classData = fileManager.getJavaMemClass().getBytes();
         } else {
             StringBuilder message = new StringBuilder();
+            // 遍历诊断收集器中的诊断信息，将错误信息添加到message中
             for (Diagnostic<? extends JavaFileObject> diagnostics : diagnosticCollector.getDiagnostics()) {
                 message.append("\r\n").append(diagnostics.toString());
             }
             log.debug("编译失败 {}", message);
+            // 如果编译失败，抛出LoaderRuntimeException异常，并传递错误信息
             throw new LoaderRuntimeException(message.toString());
         }
+        // 返回DynamicClass对象
         return this;
     }
 
+
+
     /**
-     * 加载
+     * 加载指定类的类对象。
      *
-     * @return
+     * @return 返回指定类的类对象。
+     * @throws LoaderRuntimeException 如果找不到指定类则抛出该异常。
      */
     public Class<?> load() {
         try {
+            // 创建一个动态类加载器
             DynamicClassLoader myClassLoader = new DynamicClassLoader(classData);
+            // 使用加载器加载指定的类
             return myClassLoader.loadClass(fullClassName);
         } catch (ClassNotFoundException e) {
+            // 如果找不到指定的类，则抛出运行时异常
             throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
+
 }

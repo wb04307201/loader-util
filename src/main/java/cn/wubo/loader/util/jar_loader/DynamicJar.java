@@ -19,18 +19,32 @@ public class DynamicJar {
         this.filePath = filePath;
     }
 
+    /**
+     * 初始化一个DynamicJar对象
+     *
+     * @param filePath 文件路径
+     * @return DynamicJar对象
+     */
     public static DynamicJar init(String filePath) {
-        log.debug("初始化jar filePath:{}", filePath);
+        log.debug("jar文件路径初始化:{}", filePath);
         return new DynamicJar(filePath);
     }
 
+
+    /**
+     * 加载指定的类名。
+     *
+     * @param fullClassName 待加载的类名
+     * @return 加载的类对象
+     */
     public Class<?> load(String fullClassName) {
         try {
-            URL url = new File(filePath).toURI().toURL();
-            URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url});
-            return urlClassLoader.loadClass(fullClassName);
+            URL url = new File(filePath).toURI().toURL();  // 将文件路径转换为URL格式
+            URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url});  // 创建URLClassLoader
+            return urlClassLoader.loadClass(fullClassName);  // 加载指定的类
         } catch (MalformedURLException | ClassNotFoundException e) {
-            throw new LoaderRuntimeException(e.getMessage(), e);
+            throw new LoaderRuntimeException(e.getMessage(), e);  // 抛出加载异常
         }
     }
+
 }

@@ -16,11 +16,23 @@ public class DynamicGroovy {
         this.javaSourceCode = javaSourceCode;
     }
 
+    /**
+     * 初始化 DynamicGroovy 工具类
+     *
+     * @param javaSourceCode Java 源代码字符串
+     * @return DynamicGroovy 对象
+     */
     public static DynamicGroovy init(String javaSourceCode) {
-        log.debug("初始化groovy javaSourceCode:{}", javaSourceCode);
+        log.debug("初始化 groovy javaSourceCode:{}", javaSourceCode);
         return new DynamicGroovy(javaSourceCode);
     }
 
+
+    /**
+     * 加载并解析一个Groovy类或脚本的Class对象。
+     *
+     * @return 解析后的Class对象
+     */
     public Class<?> load() {
         try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader()) {
             return groovyClassLoader.parseClass(javaSourceCode);
@@ -28,4 +40,5 @@ public class DynamicGroovy {
             throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
+
 }

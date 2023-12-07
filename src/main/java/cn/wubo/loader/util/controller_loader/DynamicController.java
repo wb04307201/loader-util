@@ -23,16 +23,25 @@ public class DynamicController {
         return new DynamicController(dynamicClass);
     }
 
+    /**
+     * 加载并注册动态类的Controller
+     * @return 动态类的Bean名称
+     */
     public String load() {
         String beanName = SpringContextUtils.beanName(dynamicClass.getFullClassName());
-        //销毁Bean
+
+        // 销毁Bean
         SpringContextUtils.destroy(beanName);
-        //销毁Bean
+
+        // 销毁Bean
         SpringContextUtils.destroy(beanName);
-        //每次都是new新的ClassLoader对象
+
+        // 每次都是new新的ClassLoader对象
         Class<?> type = dynamicClass.compiler().load();
+
         RequestMappingHandlerMapping requestMappingHandlerMapping = SpringContextUtils.getBean("requestMappingHandlerMapping");
-        //注册Controller
+
+        // 注册Controller
         try {
             Method method = requestMappingHandlerMapping.getClass().getSuperclass().getSuperclass().getDeclaredMethod("detectHandlerMethods", Object.class);
             method.setAccessible(true);
@@ -40,6 +49,8 @@ public class DynamicController {
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
             throw new LoaderRuntimeException(e.getMessage(), e);
         }
+
         return beanName;
     }
+
 }

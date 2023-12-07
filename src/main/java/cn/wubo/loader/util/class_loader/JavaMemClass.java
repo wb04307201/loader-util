@@ -19,13 +19,25 @@ public class JavaMemClass extends SimpleJavaFileObject {
             + kind.extension), kind);
     }
  
+    /**
+     * 获取字节数组
+     *
+     * @return 字节数组
+     */
     public byte[] getBytes() {
         return classByteArrayOutputStream.toByteArray();
     }
+
  
+    /**
+     * 重写openOutputStream方法
+     *
+     * @return 返回classByteArrayOutputStream对象
+     */
     @Override
     public OutputStream openOutputStream() {
         return classByteArrayOutputStream;
     }
+
     
 }

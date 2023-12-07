@@ -20,9 +20,16 @@ public class JavaMemSource extends SimpleJavaFileObject{
 		this.javaSourceCode = javaSourceCode;
 	}
 	
-	@Override 
-	public CharSequence getCharContent(boolean ignoreEncodingErrors) { 
-		return javaSourceCode;
-	} 
+	/**
+	 * 获取源代码的注释。
+	 *
+	 * @param ignoreEncodingErrors 是否忽略编码错误。
+	 * @return 源代码的字符内容。
+	 */
+	@Override
+	public CharSequence getCharContent(boolean ignoreEncodingErrors) {
+	    return javaSourceCode;
+	}
+
 
 }
