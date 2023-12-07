@@ -4,7 +4,7 @@
 
 ## 第一步 增加 JitPack 仓库
 ```xml
-    <repositories>
+<repositories>
     <repository>
         <id>jitpack.io</id>
         <url>https://jitpack.io</url>
@@ -14,7 +14,7 @@
 
 ## 第二步 引入jar
 ```xml
-	<dependency>
+<dependency>
     <groupId>com.gitee.wb04307201</groupId>
     <artifactId>loader-util</artifactId>
     <version>1.0.4</version>
