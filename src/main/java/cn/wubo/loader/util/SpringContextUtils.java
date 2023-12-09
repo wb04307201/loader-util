@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@Component
+@Component(value = "loaderUtilSpringContextUtils")
 public class SpringContextUtils implements BeanFactoryAware {
 
     public static DefaultListableBeanFactory listableBeanFactory;
