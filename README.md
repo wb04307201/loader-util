@@ -130,7 +130,7 @@ Hello,world!
 ## 6. proxy 动态代理切面
 ```java
     @GetMapping(value = "/testAspect")
-public String testAspect() {
+    public String testAspect() throws InstantiationException, IllegalAccessException {
         String javaSourceCode = "package cn.wubo.loader.util;\n" +
         "\n" +
         "public class TestClass {\n" +
@@ -145,7 +145,7 @@ public String testAspect() {
         Class<?> clasz = dynamicClass.load();
         Object obj = MethodUtils.proxy(clasz.newInstance());
         return (String) MethodUtils.invokeClass(obj, methodName, "world");
-        }
+    }
 ```
 输出示例
 ```text
