@@ -11,7 +11,7 @@ import java.util.Map;
 @Component(value = "loaderUtilSpringContextUtils")
 public class SpringContextUtils implements BeanFactoryAware {
 
-    public static DefaultListableBeanFactory listableBeanFactory;
+    private static DefaultListableBeanFactory listableBeanFactory;
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

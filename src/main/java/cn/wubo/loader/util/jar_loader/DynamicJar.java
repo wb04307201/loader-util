@@ -4,6 +4,7 @@ import cn.wubo.loader.util.exception.LoaderRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -40,9 +41,10 @@ public class DynamicJar {
     public Class<?> load(String fullClassName) {
         try {
             URL url = new File(filePath).toURI().toURL();  // 将文件路径转换为URL格式
-            URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url});  // 创建URLClassLoader
-            return urlClassLoader.loadClass(fullClassName);  // 加载指定的类
-        } catch (MalformedURLException | ClassNotFoundException e) {
+            try (URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url})) {
+                return urlClassLoader.loadClass(fullClassName);  // 加载指定的类
+            }  // 创建URLClassLoader
+        } catch (ClassNotFoundException | IOException e) {
             throw new LoaderRuntimeException(e.getMessage(), e);  // 抛出加载异常
         }
     }

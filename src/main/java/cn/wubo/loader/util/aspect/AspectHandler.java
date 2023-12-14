@@ -33,9 +33,9 @@ public class AspectHandler implements MethodInterceptor {
             aspect.before(target, method, args);  // 在执行被拦截的方法之前执行before增强操作
             result = method.invoke(target, args); // 调用被拦截的方法并获取执行结果
             aspect.after(target, method, args, result);  // 在执行被拦截的方法之后执行after增强操作
-        } catch (Throwable cause) {
-            aspect.afterThrow(target, method, args, cause);  // 在抛出被拦截的方法时执行afterThrow增强操作
-            throw cause;  // 抛出被拦截的方法时抛出的异常
+        } catch (Exception e) {
+            aspect.afterThrow(target, method, args, e);  // 在抛出被拦截的方法时执行afterThrow增强操作
+            throw e;  // 抛出被拦截的方法时抛出的异常
         }
         return result;  // 返回被拦截的方法执行结果
     }
