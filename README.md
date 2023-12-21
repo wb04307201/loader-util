@@ -28,9 +28,7 @@
 
 ## 第三步 如何使用
 ## 1. DynamicBean 动态编译加载Bean并执行
-
 > 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.SpringContextUtils文件
-
 ```java
     @GetMapping(value = "/test/bean")
     public String testBean(){
