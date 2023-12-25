@@ -124,7 +124,7 @@ Accept: application/json
 
 Hello,world!
 ```
-#### 如需在controller种调用其他bean，其实用MethodUtils.invokeBean("demoService", "testMethod", name)
+#### 如需在controller种调用其他bean，请使用MethodUtils.invokeBean("demoService", "testMethod", name)
 ```java
     @GetMapping(value = "/loadControllerAndBean")
     public String loadControllerAndBean() {
