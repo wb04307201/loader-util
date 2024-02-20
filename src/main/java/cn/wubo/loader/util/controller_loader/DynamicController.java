@@ -33,9 +33,6 @@ public class DynamicController {
         // 销毁Bean
         SpringContextUtils.destroy(beanName);
 
-        // 销毁Bean
-        SpringContextUtils.destroy(beanName);
-
         // 每次都是new新的ClassLoader对象
         Class<?> type = dynamicClass.compiler().load();
 
