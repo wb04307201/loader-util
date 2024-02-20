@@ -17,7 +17,7 @@
 ```
 
 ## 第二步 引入jar
-1.1.0版本后升级到jdk 17 SpringBoot 3.2.2
+1.1.0版本后升级到jdk17 SpringBoot 3+
 ```xml
 <dependency>
     <groupId>com.gitee.wb04307201</groupId>
