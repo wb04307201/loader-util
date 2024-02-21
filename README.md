@@ -99,22 +99,34 @@
     @GetMapping(value = "/loadController")
     public String loadController() {
         String fullClassName = "cn.wubo.loaderutiltest.DemoController";
-        String javaSourceCode = "package cn.wubo.loaderutiltest;\n" +
-                "\n" +
-                "import org.springframework.web.bind.annotation.GetMapping;\n" +
-                "import org.springframework.web.bind.annotation.RequestMapping;\n" +
-                "import org.springframework.web.bind.annotation.RequestParam;\n" +
-                "import org.springframework.web.bind.annotation.RestController;\n" +
-                "\n" +
-                "@RestController\n" +
-                "@RequestMapping(value = \"test\")\n" +
-                "public class DemoController {\n" +
-                "\n" +
-                "    @GetMapping(value = \"hello\")\n" +
-                "    public String testMethod(@RequestParam(value=\"name\") String name) {\n" +
-                "        return String.format(\"Hello,%s!\", name);\n" +
-                "    }\n" +
-                "}";
+        String javaSourceCode = """
+            package cn.wubo.loaderutiltest;
+
+            import lombok.AllArgsConstructor;
+            import lombok.Data;
+            import lombok.NoArgsConstructor;
+            import org.springframework.web.bind.annotation.GetMapping;
+            import org.springframework.web.bind.annotation.RequestMapping;
+            import org.springframework.web.bind.annotation.RequestParam;
+            import org.springframework.web.bind.annotation.RestController;
+
+            @RestController
+            @RequestMapping(value = "test")
+            public class DemoController {
+
+                @GetMapping(value = "hello")
+                public User hello(@RequestParam(value = "name") String name) {
+                    return new User(name);
+                }
+
+                @Data
+                @AllArgsConstructor
+                @NoArgsConstructor
+                public static class User {
+                    private String name;
+                }
+            }
+                            """;
         return DynamicController.init(DynamicClass.init(javaSourceCode, fullClassName)).load();
     }
 ```
