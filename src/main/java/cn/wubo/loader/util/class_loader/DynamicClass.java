@@ -142,9 +142,8 @@ public class DynamicClass {
         return this;
     }
 
-
     /**
-     * 编译方法
+     * 编译Java代码
      *
      * @return 返回DynamicClass对象
      */
@@ -186,6 +185,7 @@ public class DynamicClass {
     }
 
 
+
     /**
      * 加载指定类的类对象。
      *
@@ -194,11 +194,16 @@ public class DynamicClass {
      */
     public Class<?> load() {
         try {
+            // 获取已编译的类数据
             Map<String, byte[]> compiledClasses = fileManager.getAllCompiledClassesData();
+            // 创建动态类加载器
             DynamicClassLoader classLoader = new DynamicClassLoader(Thread.currentThread().getContextClassLoader());
+            // 将已编译的类数据添加到动态类加载器中
             compiledClasses.forEach(classLoader::addClass);
+            // 加载指定类的类对象
             return classLoader.loadClass(fullClassName);
         } catch (ClassNotFoundException e) {
+            // 加载类失败，抛出LoaderRuntimeException异常
             throw new LoaderRuntimeException("加载类失败: " + e.getMessage(), e);
         }
     }

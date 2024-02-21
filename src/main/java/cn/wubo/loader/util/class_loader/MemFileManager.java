@@ -41,7 +41,7 @@ public class MemFileManager extends ForwardingJavaFileManager<JavaFileManager> {
     /**
      * 获取所有编译好的类的字节码数据
      *
-     * @return
+     * @return 所有编译好的类的字节码数据的Map，键为类名，值为类的字节码数据
      */
     public Map<String, byte[]> getAllCompiledClassesData() {
         Map<String, byte[]> classDataMap = new HashMap<>();
