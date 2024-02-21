@@ -8,6 +8,7 @@ import javax.tools.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -19,7 +20,7 @@ public class DynamicClass {
     @Getter
     private String fullClassName;
     private List<String> options = new ArrayList<>();
-    private byte[] classData;
+    private MemFileManager fileManager;
 
     public DynamicClass(String javaSourceCode, String fullClassName) {
         this.javaSourceCode = javaSourceCode;
@@ -28,8 +29,9 @@ public class DynamicClass {
 
     /**
      * 初始化一个DynamicClass对象
+     *
      * @param javaSourceCode Java源代码字符串
-     * @param fullClassName 完整的类名
+     * @param fullClassName  完整的类名
      * @return 初始化后的DynamicClass对象
      */
     public static DynamicClass init(String javaSourceCode, String fullClassName) {
@@ -140,9 +142,8 @@ public class DynamicClass {
         return this;
     }
 
-
     /**
-     * 编译方法
+     * 编译Java代码
      *
      * @return 返回DynamicClass对象
      */
@@ -156,7 +157,7 @@ public class DynamicClass {
         DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
 
         // 创建内存文件管理器
-        MemFileManager fileManager = new MemFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null));
+        this.fileManager = new MemFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null));
 
         // 创建JavaMemSource对象
         JavaMemSource file = new JavaMemSource(fullClassName, javaSourceCode);
@@ -169,22 +170,17 @@ public class DynamicClass {
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticCollector, options, null, compilationUnits);
 
         log.debug("执行编译");
+        boolean result = task.call();
         // 执行编译任务
-        if (Boolean.TRUE.equals(task.call())) {
-            log.debug("编译成功");
-            // 如果编译成功，将生成的Java类数据保存到classData变量中
-            classData = fileManager.getJavaMemClass().getBytes();
-        } else {
-            StringBuilder message = new StringBuilder();
-            // 遍历诊断收集器中的诊断信息，将错误信息添加到message中
-            for (Diagnostic<? extends JavaFileObject> diagnostics : diagnosticCollector.getDiagnostics()) {
-                message.append("\r\n").append(diagnostics.toString());
-            }
-            log.debug("编译失败 {}", message);
-            // 如果编译失败，抛出LoaderRuntimeException异常，并传递错误信息
-            throw new LoaderRuntimeException(message.toString());
+        if (!result) {
+            // 处理编译错误
+            String errorMessage = diagnosticCollector.getDiagnostics().stream()
+                    .map(Object::toString)
+                    .reduce("", (acc, x) -> acc + "\r\n" + x);
+            log.debug("编译失败: {}", errorMessage);
+            throw new LoaderRuntimeException("编译失败: " + errorMessage);
         }
-        // 返回DynamicClass对象
+        log.debug("编译成功");
         return this;
     }
 
@@ -198,13 +194,17 @@ public class DynamicClass {
      */
     public Class<?> load() {
         try {
-            // 创建一个动态类加载器
-            DynamicClassLoader myClassLoader = new DynamicClassLoader(classData);
-            // 使用加载器加载指定的类
-            return myClassLoader.loadClass(fullClassName);
+            // 获取已编译的类数据
+            Map<String, byte[]> compiledClasses = fileManager.getAllCompiledClassesData();
+            // 创建动态类加载器
+            DynamicClassLoader classLoader = new DynamicClassLoader(Thread.currentThread().getContextClassLoader());
+            // 将已编译的类数据添加到动态类加载器中
+            compiledClasses.forEach(classLoader::addClass);
+            // 加载指定类的类对象
+            return classLoader.loadClass(fullClassName);
         } catch (ClassNotFoundException e) {
-            // 如果找不到指定的类，则抛出运行时异常
-            throw new LoaderRuntimeException(e.getMessage(), e);
+            // 加载类失败，抛出LoaderRuntimeException异常
+            throw new LoaderRuntimeException("加载类失败: " + e.getMessage(), e);
         }
     }
 
