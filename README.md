@@ -210,3 +210,54 @@ public class DemoController {
 ```
 
 可以通过继承IAspect接口实现自定义切面，并通过MethodUtils.proxy(Class<?> clazz, Class<? extends IAspect> aspectClass)方法调用切面
+
+## DynamicClass如何在服务器上运行
+因为本地和服务器的差异导致classpath路径不同，  
+进而使服务上动态编译class时会发生找不到import类的异常，  
+因此需要对maven编译配置和启动命令做出一定的修改  
+### 1. maven编译配置增加如下部分
+```xml
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <!-- 是否要把第三方jar加入到类构建路径 -->
+                            <addClasspath>true</addClasspath>
+                            <!-- 外部依赖jar包的最终位置 -->
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <!--指定jar程序入口-->
+                            <mainClass>cn.wubo.loaderutiltest.LoaderUtilTestApplication</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <!-- lib依赖包输出目录，打包的时候不打进jar包里 -->
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <excludeTransitive>false</excludeTransitive>
+                            <stripVersion>false</stripVersion>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+```
+### 2. 执行编译命令，会在jar包的同级目录下生成lib文件夹存放依赖包
+![img.png](img.png)
+### 3. 将jar包和lib文件夹上到服务器，并在启动命令中增加`-Dloader.path=lib/`
+```shell
+java -jar -Dloader.path=lib/ loader-util-test-0.0.1-SNAPSHOT.jar
+```
+
