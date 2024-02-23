@@ -153,7 +153,6 @@ public class SpringContextUtils implements BeanFactoryAware {
         return Character.toLowerCase(beanName.charAt(0)) + beanName.substring(1);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T getBean(String name) {
         return (T) listableBeanFactory.getBean(name);
     }
