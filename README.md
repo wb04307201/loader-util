@@ -22,7 +22,7 @@
 <dependency>
     <groupId>com.gitee.wb04307201</groupId>
     <artifactId>loader-util</artifactId>
-    <version>1.1.2</version>
+    <version>1.1.3</version>
 </dependency>
 ```
 
@@ -136,52 +136,7 @@ Accept: application/json
 
 Hello,world!
 ```
-#### 如需在controller种调用其他bean，请使用MethodUtils.invokeBean("demoService", "testMethod", name)
-```java
-    @GetMapping(value = "/loadControllerAndBean")
-    public String loadControllerAndBean() {
-        String fullClassName1 = "cn.wubo.loaderutiltest.DemoService";
-        String javaSourceCode1 = """
-                                package cn.wubo.loaderutiltest;
 
-                import org.springframework.stereotype.Service;
-
-                @Service
-                public class DemoService {
-
-                    public String testMethod(String name) {
-                        return String.format("Hello,%s!", name);
-                    }
-                }
-                                """;
-
-        String beanName = DynamicBean.init(DynamicClass.init(javaSourceCode1, fullClassName1)).load();
-
-
-        String fullClassName2 = "cn.wubo.loaderutiltest.DemoController";
-        String javaSourceCode2 = """
-                                package cn.wubo.loaderutiltest;
-
-import cn.wubo.loader.util.MethodUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-@RestController
-@RequestMapping(value = "test")
-public class DemoController {
-
-    @GetMapping(value = "hello")
-    public String testMethod(@RequestParam(value = "name") String name) {
-        return MethodUtils.invokeBean("demoService", "testMethod", name);
-    }
-}
-                                """;
-
-        return DynamicController.init(DynamicClass.init(javaSourceCode2, fullClassName2)).load();
-    }
-```
 ## 6. proxy 动态代理切面
 ```java
     @GetMapping(value = "/testAspect")
