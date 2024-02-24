@@ -1,7 +1,7 @@
 package cn.wubo.loader.util.bean_loader;
 
-import cn.wubo.loader.util.class_loader.DynamicClass;
 import cn.wubo.loader.util.SpringContextUtils;
+import cn.wubo.loader.util.class_loader.DynamicClass;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -24,20 +24,23 @@ public class DynamicBean {
         return new DynamicBean(dynamicClass);
     }
 
-
     /**
-     * 加载动态生成的类并将其注册为单例Bean，
-     * 销毁同名的Bean对象，返回新加载类的Bean名称
-     * @return 新加载类的Bean名称
+     * 加载动态类并注册到Spring容器中
+     *
+     * @return 注册的bean名称
      */
     public String load() {
+        // 获取动态类的bean名称
         String beanName = SpringContextUtils.beanName(dynamicClass.getFullClassName());
-        // 销毁Bean
-        SpringContextUtils.destroy(beanName);
-        // 每次都是new新的ClassLoader对象
+        // 如果Spring容器中已存在该bean，则销毁该bean
+        if (Boolean.TRUE.equals(SpringContextUtils.containsBean(beanName))) SpringContextUtils.destroy(beanName);
+        // 加载动态类并获取其Class对象
         Class<?> type = dynamicClass.compiler().load();
-        SpringContextUtils.registerSingleton(type);
+        // 将该Class对象注册为Spring容器中的单例bean
+        SpringContextUtils.registerSingleton(beanName, type);
+        // 返回注册的bean名称
         return beanName;
     }
+
 
 }

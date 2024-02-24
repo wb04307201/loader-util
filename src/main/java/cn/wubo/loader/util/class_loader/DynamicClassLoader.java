@@ -20,6 +20,12 @@ public class DynamicClassLoader extends SecureClassLoader {
         super(parent);
     }
 
+    /**
+     * 添加类信息
+     *
+     * @param fullClassName 类的完全限定名
+     * @param classData     类的数据
+     */
     public void addClass(String fullClassName, byte[] classData) {
         classBytes.put(fullClassName, classData);
     }
