@@ -9,6 +9,7 @@ import org.springframework.cglib.proxy.Enhancer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * 执行方法和代理切面工具类
@@ -29,7 +30,7 @@ public class MethodUtils {
     public static Object invokeClass(Class<?> clazz, String methodName, Object... args) {
         try {
             Object o = clazz.getConstructor().newInstance();  // 创建目标类的实例对象
-            Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).toList().toArray(new Class<?>[]{});  // 获取参数的类型
+            Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});  // 获取参数的类型
             Method method = clazz.getDeclaredMethod(methodName, parameterTypes);  // 获取目标方法
             method.setAccessible(true);  // 设置方法可访问
             return method.invoke(o, args);  // 调用目标方法并返回结果
@@ -51,7 +52,7 @@ public class MethodUtils {
     public static <T, R> R invokeClass(T target, String methodName, Object... args) {
         try {
             // 获取参数类型数组
-            Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).toList().toArray(new Class<?>[]{});
+            Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});
             // 获取目标对象对应方法的实例
             Method method = target.getClass().getDeclaredMethod(methodName, parameterTypes);
             // 设置方法可访问性
@@ -88,7 +89,7 @@ public class MethodUtils {
     public static Object invokeBeanReturnObject(String beanName, String methodName, Object... args) {
         try {
             Object obj = SpringContextUtils.getBean(beanName);
-            Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).toList().toArray(new Class<?>[]{});
+            Class<?>[] parameterTypes = Arrays.stream(args).map(Object::getClass).collect(Collectors.toList()).toArray(new Class<?>[]{});
             Method method = obj.getClass().getMethod(methodName, parameterTypes);
             method.setAccessible(true);
             return method.invoke(obj, args);
