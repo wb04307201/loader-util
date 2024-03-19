@@ -1,6 +1,11 @@
 # loader-util 动态编译、加载、执行工具
 
 [![](https://jitpack.io/v/com.gitee.wb04307201/loader-util.svg)](https://jitpack.io/#com.gitee.wb04307201/loader-util)
+[![star](https://gitee.com/wb04307201/loader-util/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/loader-util)
+[![fork](https://gitee.com/wb04307201/loader-util/badge/fork.svg?theme=dark)](https://gitee.com/wb04307201/loader-util)
+[![star](https://img.shields.io/github/stars/wb04307201/loader-util)](https://github.com/wb04307201/loader-util)
+[![fork](https://img.shields.io/github/forks/wb04307201/loader-util)](https://github.com/wb04307201/loader-util)
+
 
 ## 代码示例
 1. 使用[动态编译加载执行工具](https://gitee.com/wb04307201/loader-util)实现的[动态编译加载执行工具示例代码](https://gitee.com/wb04307201/loader-util-test)
