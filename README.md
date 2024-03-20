@@ -221,3 +221,16 @@ Hello,world!
 java -jar -Dloader.path=lib/ loader-util-test-0.0.1-SNAPSHOT.jar
 ```
 
+## 注意说明
+```text
+如果编译报错： Can't initialize javac processor due to (most likely) a class loader problem: java.lang.NoClassDefFoundError: com/sun/tools/javac/processing/JavacProcessingEnvironment
+```
+####
+
+这是因为JAVA编译器是通过JavaFileManager来加载相关依赖类的，而JavaFileManager来自tools.jar。
+
+解决办法： 
+- **idea启动的话**，打开Project Strcutre，添加tools.jar
+  ![img.png](q1.png)
+- 服务器启动，跑jar包的时候需要加入`-Xbootclasspath/a:$toolspath/tools.jar`参数,nohup java -Xbootclasspath/a:$toolspath/tools.jar -jar loader-util-test-0.0.1-SNAPSHOT.jar > /dev/null 2>&1 &
+
