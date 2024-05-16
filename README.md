@@ -33,27 +33,7 @@
 ```
 
 ## 第三步 如何使用
-## 1. DynamicBean 动态编译加载Bean并执行
-> 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.SpringContextUtils文件
-```java
-    @GetMapping(value = "/test/bean")
-    public String testBean(){
-        String javaSourceCode = "package cn.wubo.loader.util;\n" +
-                "\n" +
-                "public class TestClass {\n" +
-                "    \n" +
-                "    public String testMethod(String name){\n" +
-                "        return String.format(\"Hello,%s!\",name);\n" +
-                "    }\n" +
-                "}";
-        String fullClassName = "cn.wubo.loader.util.TestClass";
-        String methodName = "testMethod";
-        String beanName = DynamicBean.init(DynamicClass.init(javaSourceCode,fullClassName)).load();
-        return (String) MethodUtils.invokeBean(beanName,methodName,"world");
-    }
-```
-
-## 2. DynamicClass 动态编译加载Class并执行
+## 1. DynamicClass 动态编译Class并执行
 ```java
     @GetMapping(value = "/test/class")
     public String testClass(){
@@ -73,7 +53,7 @@
     }
 ```
 
-## 3. DynamicJar 动态加载外部jar并执行
+## 2. DynamicJar 动态加载外部jar并执行
 ```java
     @GetMapping(value = "/test/jar")
     public String testJar(){
@@ -82,7 +62,27 @@
     }
 ```
 
-## 4. DynamicGroovy 动态编译加载Groovy并执行
+## 3. DynamicBean 动态编译加载Bean并执行
+> 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.SpringContextUtils文件
+```java
+    @GetMapping(value = "/test/bean")
+    public String testBean(){
+        String javaSourceCode = "package cn.wubo.loader.util;\n" +
+                "\n" +
+                "public class TestClass {\n" +
+                "    \n" +
+                "    public String testMethod(String name){\n" +
+                "        return String.format(\"Hello,%s!\",name);\n" +
+                "    }\n" +
+                "}";
+        String fullClassName = "cn.wubo.loader.util.TestClass";
+        String methodName = "testMethod";
+        String beanName = DynamicBean.init(DynamicClass.init(javaSourceCode,fullClassName)).load();
+        return (String) MethodUtils.invokeBean(beanName,methodName,"world");
+    }
+```
+
+## 4. DynamicGroovy 通过Groovy动态编译Class并执行
 ```java
     @GetMapping(value = "/loadAndInvokeGroovy")
     public String loadAndInvokeGroovy() {
@@ -95,7 +95,7 @@
                 "    }\n" +
                 "}";
         String methodName = "testMethod";
-        Class<?> clasz = DynamicGroovy.init(javaSourceCode).load();
+        Class<?> clasz = DynamicGroovyClass.init(javaSourceCode).load();
         return (String) MethodUtils.invokeClass(clasz, methodName, "world");
     }
 ```
@@ -232,6 +232,6 @@ java -jar -Dloader.path=lib/ loader-util-test-0.0.1-SNAPSHOT.jar
 
 解决办法： 
 - **idea启动的话**，打开Project Strcutre，添加tools.jar
-  ![img.png](q1.png)
+  ![img.png](img.png)
 - 服务器启动，跑jar包的时候需要加入`-Xbootclasspath/a:$toolspath/tools.jar`参数,nohup java -Xbootclasspath/a:$toolspath/tools.jar -jar loader-util-test-0.0.1-SNAPSHOT.jar > /dev/null 2>&1 &
 
