@@ -33,11 +33,6 @@
                 <artifactId>logback-classic</artifactId>
                 <version>1.5.6</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.groovy</groupId>
-                <artifactId>groovy</artifactId>
-                <version>4.0.21</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -82,21 +82,26 @@
     }
 ```
 
-## 4. DynamicGroovy 通过Groovy动态编译Class并执行
+## 4.可通过Groovy动态编译Class
+添加依赖
+```xml
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy</artifactId>
+                <version>4.0.21</version>
+            </dependency>
+```
+编译class
 ```java
     @GetMapping(value = "/loadAndInvokeGroovy")
     public String loadAndInvokeGroovy() {
-        String javaSourceCode = "package cn.wubo.loader.util;\n" +
-                "\n" +
-                "public class TestClass {\n" +
-                "    \n" +
-                "    public String testMethod(String name){\n" +
-                "        return String.format(\"Hello,%s!\",name);\n" +
-                "    }\n" +
-                "}";
-        String methodName = "testMethod";
-        Class<?> clasz = DynamicGroovyClass.init(javaSourceCode).load();
-        return (String) MethodUtils.invokeClass(clasz, methodName, "world");
+        try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader()) {
+            groovyClassLoader.parseClass(javaSourceCode);
+            Class<?> clasz = groovyClassLoader.parseClass(javaSourceCode);
+            return (String) MethodUtils.invokeClass(clasz, methodName, "world");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 ```
 
