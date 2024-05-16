@@ -132,7 +132,7 @@
                     private String name;
                 }
             }
-                            """;
+            """;
         return DynamicController.init(DynamicClass.init(javaSourceCode, fullClassName)).load();
     }
 ```
