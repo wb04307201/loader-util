@@ -49,5 +49,4 @@ public class DynamicGroovyClass {
             throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
-
 }
