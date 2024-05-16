@@ -28,7 +28,7 @@
 <dependency>
     <groupId>com.gitee.wb04307201</groupId>
     <artifactId>loader-util</artifactId>
-    <version>1.1.3</version>
+    <version>1.1.4</version>
 </dependency>
 ```
 
