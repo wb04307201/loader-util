@@ -25,7 +25,9 @@ public class DynamicBean {
     }
 
     /**
-     * 加载动态类并注册到Spring容器中
+     * 加载动态类并注册到Spring容器中。
+     * 此方法首先尝试获取动态类的bean名称，然后检查该bean是否已在Spring容器中存在。
+     * 如果已存在，则销毁该bean。接着，加载动态类的Class对象，并将其作为单例bean注册到Spring容器中。
      *
      * @return 注册的bean名称
      */
@@ -41,6 +43,4 @@ public class DynamicBean {
         // 返回注册的bean名称
         return beanName;
     }
-
-
 }

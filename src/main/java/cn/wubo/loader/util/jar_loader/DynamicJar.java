@@ -31,22 +31,24 @@ public class DynamicJar {
         return new DynamicJar(filePath);
     }
 
-
     /**
      * 加载指定的类名。
      *
-     * @param fullClassName 待加载的类名
-     * @return 加载的类对象
+     * @param fullClassName 待加载的类的完整名称，包括包名。
+     * @return 加载的类对象。如果指定的类成功加载，则返回对应的Class对象。
+     * @throws LoaderRuntimeException 如果类加载失败，将抛出此运行时异常。
      */
     public Class<?> load(String fullClassName) {
         try {
-            URL url = new File(filePath).toURI().toURL();  // 将文件路径转换为URL格式
+            // 将文件路径转换为URL格式，为创建URLClassLoader做准备
+            URL url = new File(filePath).toURI().toURL();
             try (URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url})) {
-                return urlClassLoader.loadClass(fullClassName);  // 加载指定的类
-            }  // 创建URLClassLoader
+                // 使用URLClassLoader加载指定的类
+                return urlClassLoader.loadClass(fullClassName);
+            }  // URLClassLoader的资源被自动关闭
         } catch (ClassNotFoundException | IOException e) {
-            throw new LoaderRuntimeException(e.getMessage(), e);  // 抛出加载异常
+            // 当类找不到或发生IO异常时，抛出自定义的加载异常
+            throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
-
 }
