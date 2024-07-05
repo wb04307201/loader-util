@@ -11,7 +11,9 @@
 1. 使用[动态编译加载执行工具](https://gitee.com/wb04307201/loader-util)实现的[动态编译加载执行工具示例代码](https://gitee.com/wb04307201/loader-util-test)
 2. 使用[动态调度](https://gitee.com/wb04307201/dynamic-schedule-spring-boot-starter)、[消息中间件](https://gitee.com/wb04307201/message-spring-boot-starter)、[动态编译加载执行工具](https://gitee.com/wb04307201/loader-util)、[实体SQL工具](https://gitee.com/wb04307201/sql-util)实现的[在线编码、动态调度、发送钉钉群消息、快速构造web页面Demo](https://gitee.com/wb04307201/dynamic-schedule-demo)
 
-## 第一步 增加 JitPack 仓库
+## 快速开始
+### 引入依赖
+增加 JitPack 仓库
 ```xml
 <repositories>
     <repository>
@@ -21,7 +23,6 @@
 </repositories>
 ```
 
-## 第二步 引入jar
 1.1.0版本后升级到jdk17 SpringBoot3+  
 继续使用jdk 8请查看jdk8分支
 ```xml
@@ -32,8 +33,8 @@
 </dependency>
 ```
 
-## 第三步 如何使用
-## 1. DynamicClass 动态编译Class并执行
+### 使用
+#### 1. DynamicClass 动态编译Class并执行
 ```java
     @GetMapping(value = "/test/class")
     public String testClass(){
@@ -53,7 +54,7 @@
     }
 ```
 
-## 2. DynamicJar 动态加载外部jar并执行
+#### 2. DynamicJar 动态加载外部jar并执行
 ```java
     @GetMapping(value = "/test/jar")
     public String testJar(){
@@ -62,7 +63,7 @@
     }
 ```
 
-## 3. DynamicBean 动态编译加载Bean并执行
+#### 3. DynamicBean 动态编译加载Bean并执行
 > 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.SpringContextUtils文件
 ```java
     @GetMapping(value = "/test/bean")
@@ -82,7 +83,7 @@
     }
 ```
 
-## 4.可通过Groovy动态编译Class
+#### 4.可通过Groovy动态编译Class
 添加依赖
 ```xml
             <dependency>
@@ -105,7 +106,7 @@
     }
 ```
 
-## 5. DynamicController 动态编译加载Controller并执行
+#### 5. DynamicController 动态编译加载Controller并执行
 ```java
     @GetMapping(value = "/loadController")
     public String loadController() {
@@ -148,7 +149,7 @@ Accept: application/json
 Hello,world!
 ```
 
-## 6. proxy 动态代理切面
+#### 6. proxy 动态代理切面
 ```java
     @GetMapping(value = "/testAspect")
     public String testAspect() throws InstantiationException, IllegalAccessException {
@@ -177,7 +178,7 @@ Hello,world!
 
 可以通过继承IAspect接口实现自定义切面，并通过MethodUtils.proxy(Class<?> clazz, Class<? extends IAspect> aspectClass)方法调用切面
 
-## DynamicClass如何在服务器上运行
+## 如何在服务器上运行
 因为本地和服务器的差异导致classpath路径不同，  
 进而使服务上动态编译class时会发生找不到import类的异常，  
 因此需要对maven编译配置和启动命令做出一定的修改  
