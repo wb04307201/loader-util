@@ -7,6 +7,14 @@
 [![fork](https://img.shields.io/github/forks/wb04307201/loader-util)](https://github.com/wb04307201/loader-util)  
 ![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg) ![JDK](https://img.shields.io/badge/JDK-17+-green.svg) ![SpringBoot](https://img.shields.io/badge/Srping%20Boot-3+-green.svg)
 
+> 在应用运行期动态加载类、bean、rest、切面的工具  
+> 包含：
+> 1. DynamicBean 动态加载Bean并执行；
+> 2. DynamicClass 动态编译加载Class并执行；
+> 3. DynamicJar 动态加载外部jar到项目中；
+> 4. DynamicGroovy 动态编译加载Groovy并执行；
+> 5. DynamicController 动态编译加载Controller并执行；
+> 6. proxy 动态代理切面。
 
 ## 代码示例
 1. 使用[动态编译加载执行工具](https://gitee.com/wb04307201/loader-util)实现的[动态编译加载执行工具示例代码](https://gitee.com/wb04307201/loader-util-test)
