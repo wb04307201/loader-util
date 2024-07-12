@@ -50,56 +50,74 @@ public class SpringContextUtils implements BeanFactoryAware {
     }
 
     /**
-     * 注册控制器
+     * 注册控制器类并触发Spring MVC的映射处理方法。
      *
-     * @param beanName 控制器的bean名称
-     * @param type     控制器的类型
+     * 本方法主要用于在运行时动态注册控制器类，使得这些类能够被Spring MVC框架识别并处理相应的HTTP请求。
+     * 通过调用registerSingleton方法将控制器类注册为Spring Bean，确保Spring容器能够管理这个类的实例。
+     * 随后，通过获取RequestMappingHandlerMapping实例并调用其detectHandlerMethods方法，来触发Spring MVC对新注册控制器的映射处理。
+     * 这一过程对于动态加载控制器类，例如在插件开发或者热部署场景中，是非常关键的。
+     *
+     * @param beanName 控制器类在Spring容器中的Bean名称。
+     * @param type 控制器类的类型。
+     * @throws LoaderRuntimeException 如果在尝试检测处理器方法过程中发生异常，则抛出此运行时异常。
+     * @param <T> 控制器类的类型参数。
      */
     public static <T> void registerController(String beanName, Class<T> type) {
+        // 注册控制器类为Spring Bean。
         registerSingleton(beanName, type);
-        // 获取RequestMappingHandlerMapping对象
+
+        // 获取RequestMappingHandlerMapping实例，用于处理请求映射。
         RequestMappingHandlerMapping requestMappingHandlerMapping = getBean("requestMappingHandlerMapping");
+
         try {
-            // 获取detectHandlerMethods方法
+            // 通过反射获取父类的父类（即AbstractHandlerMethodMapping）中的detectHandlerMethods方法。
+            // 这是因为RequestMappingHandlerMapping自身并没有提供公开的detectHandlerMethods方法。
             Method method = requestMappingHandlerMapping.getClass().getSuperclass().getSuperclass().getDeclaredMethod("detectHandlerMethods", Object.class);
-            // 设置detectHandlerMethods方法可访问
+            // 设置方法可访问，以绕过Java的访问控制。
             method.setAccessible(true);
-            // 调用detectHandlerMethods方法，将控制器对象作为参数传入
+            // 调用detectHandlerMethods方法，传入控制器Bean的名称，以触发映射处理。
             method.invoke(requestMappingHandlerMapping, beanName);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // 抛出异常
+            // 如果在处理过程中发生异常，则抛出自定义的运行时异常。
             throw new LoaderRuntimeException(e.getMessage(), e);
         }
     }
 
     /**
-     * 注销控制器
+     * 取消注册一个控制器（bean）。
+     * 该方法通过获取特定bean实例，分析并移除其上的@RequestMapping映射，从而实现控制器的注销功能。
+     * 主要用于在运行时动态调整应用程序的路由配置。
      *
-     * @param beanName 控制器的bean名称
+     * @param beanName 需要注销的控制器bean的名称。
      */
     public static void unregisterController(String beanName) {
-        // 获取控制器对象
+        // 根据bean名称获取bean实例。
         Object obj = getBean(beanName);
-        // 获取控制器的类型
+        // 获取bean实例的类类型。
         Class<?> type = obj.getClass();
-        // 获取RequestMappingHandlerMapping对象
+
+        // 获取RequestMappingHandlerMapping的实例，用于处理@RequestMapping的映射注销。
         RequestMappingHandlerMapping requestMappingHandlerMapping = getBean("requestMappingHandlerMapping");
-        // 遍历控制器的方法
+
+        // 遍历类型上的所有方法，寻找并处理@RequestMapping注解的方法。
         ReflectionUtils.doWithMethods(type, method -> {
-            // 获取最具体的实现方法
+            // 获取最具体的方法，用于处理重载方法的情况。
             Method mostSpecificMethod = ClassUtils.getMostSpecificMethod(method, type);
             try {
-                // 获取RequestMappingInfo实例
+                // 获取RequestMappingHandlerMapping中用于获取方法映射的方法。
                 Method declaredMethod = requestMappingHandlerMapping.getClass().getDeclaredMethod("getMappingForMethod", Method.class, Class.class);
+                // 设置该方法可访问，因为它是protected的。
                 declaredMethod.setAccessible(true);
+                // 调用getMappingForMethod方法，获取对应方法的RequestMappingInfo对象。
                 RequestMappingInfo requestMappingInfo = (RequestMappingInfo) declaredMethod.invoke(requestMappingHandlerMapping, mostSpecificMethod, type);
-                // 如果RequestMappingInfo不为空，则注销对应的映射
+                // 如果RequestMappingInfo不为空，则从映射中注销该方法。
                 if (requestMappingInfo != null) requestMappingHandlerMapping.unregisterMapping(requestMappingInfo);
             } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+                // 抛出运行时异常，封装原始异常信息。
                 throw new LoaderRuntimeException(e.getMessage(), e);
             }
         });
-        // 销毁控制器的bean
+        // 销毁单例bean，确保它在容器中被重新创建而不是重新使用。
         listableBeanFactory.destroySingleton(beanName);
     }
 
