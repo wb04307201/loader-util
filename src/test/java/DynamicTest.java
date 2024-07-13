@@ -21,7 +21,7 @@ class DynamicTest {
     MockMvc mockMvc;
 
     @Test
-    void testCompilerClass() {
+    void testClass() {
         String javaSourceCode = """
                 package cn.wubo.loader.util;
                                 
@@ -33,9 +33,38 @@ class DynamicTest {
                 }
                 """;
         DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, "cn.wubo.loader.util.TestClass").compiler();
-        Class<?> clasz = dynamicClass.load();
-        String str = (String) MethodUtils.invokeClass(clasz, "testMethod", "world");
+        Class<?> clazz = dynamicClass.load();
+        String str = (String) MethodUtils.invokeClass(clazz, "testMethod", "world");
         Assertions.assertEquals(str, "Hello,world!");
+    }
+
+    @Test
+    void testInnerClass() {
+        String javaSourceCode = """
+                package cn.wubo.loader.util;
+                
+                import lombok.AllArgsConstructor;
+                import lombok.Data;
+                import lombok.NoArgsConstructor;
+                                
+                public class TestClass {
+                                
+                    public Object testMethod(String name){
+                        return new User(name);
+                    }
+                    
+                    @Data
+                    @AllArgsConstructor
+                    @NoArgsConstructor
+                    public static class User {
+                        private String name;
+                    }
+                }
+                """;
+        DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, "cn.wubo.loader.util.TestClass").compiler();
+        Class<?> clazz = dynamicClass.load();
+        Object obj =  MethodUtils.invokeClass(clazz, "testMethod", "world");
+        Assertions.assertEquals(obj.toString(), "TestClass.User(name=world)");
     }
 
     @Test
@@ -64,6 +93,43 @@ class DynamicTest {
         String beanName = DynamicBean.init(DynamicClass.init(javaSourceCode, "cn.wubo.loader.util.TestClass")).load();
         String str = MethodUtils.invokeBean(beanName, "testMethod", "world");
         Assertions.assertEquals(str, "Hello,world!");
+    }
+
+    @Test
+    void testAutowiredBean() {
+        String javaSourceCode = """
+                package cn.wubo.loader.util;
+                                
+                public class TestClass {
+                                
+                    public String testMethod(String name){
+                        return String.format("Hello,%s!",name);
+                    }
+                }
+                """;
+        String beanName = DynamicBean.init(DynamicClass.init(javaSourceCode, "cn.wubo.loader.util.TestClass")).load();
+        String str = MethodUtils.invokeBean(beanName, "testMethod", "world");
+        Assertions.assertEquals(str, "Hello,world!");
+
+        String javaSourceCode2 = """
+                package cn.wubo.loader.util;
+
+                import org.springframework.beans.factory.annotation.Autowired;
+                import cn.wubo.loader.util.TestClass;
+
+                public class TestClass2 {
+                                
+                    @Autowired
+                    TestClass testClass;
+
+                    public String testMethod(String name) {
+                        return testClass.testMethod(name);
+                    }
+                }
+                """;
+        String beanName2 = DynamicBean.init(DynamicClass.init(javaSourceCode2, "cn.wubo.loader.util.TestClass2")).load();
+        String str2 = MethodUtils.invokeBean(beanName2, "testMethod", "world");
+        Assertions.assertEquals(str2, "Hello,world!");
     }
 
     @Test

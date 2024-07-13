@@ -148,23 +148,24 @@ Hello,world!
 
 #### 6. proxy 动态代理切面
 ```java
-    @GetMapping(value = "/testAspect")
-    public String testAspect() throws InstantiationException, IllegalAccessException {
-        String javaSourceCode = "package cn.wubo.loader.util;\n" +
-        "\n" +
-        "public class TestClass {\n" +
-        "    \n" +
-        "    public String testMethod(String name){\n" +
-        "        return String.format(\"Hello,%s!\",name);\n" +
-        "    }\n" +
-        "}";
-        String fullClassName = "cn.wubo.loader.util.TestClass";
-        String methodName = "testMethod";
-        DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, fullClassName).compiler();
+        String javaSourceCode = """
+            package cn.wubo.loader.util;
+                            
+            public class TestClass {
+                        
+                public String testMethod(String name){
+                    return String.format("Hello,%s!",name);
+                }
+            }
+        """;
+        DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, "cn.wubo.loader.util.TestClass").compiler();
         Class<?> clasz = dynamicClass.load();
-        Object obj = MethodUtils.proxy(clasz.newInstance());
-        return (String) MethodUtils.invokeClass(obj, methodName, "world");
-    }
+        try {
+            Object obj = MethodUtils.proxy(clasz.newInstance());
+            String str = MethodUtils.invokeClass(obj, "testMethod", "world");
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
 ```
 输出示例
 ```text

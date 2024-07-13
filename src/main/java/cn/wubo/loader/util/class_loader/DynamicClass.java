@@ -138,13 +138,7 @@ public class DynamicClass {
      */
     public Class<?> load() {
         try {
-            // 获取已编译的类数据
-            Map<String, byte[]> compiledClasses = fileManager.getAllCompiledClassesData();
-            // 创建动态类加载器
             DynamicClassLoader classLoader = new DynamicClassLoader(Thread.currentThread().getContextClassLoader());
-            // 将已编译的类数据添加到动态类加载器中
-            compiledClasses.forEach(classLoader::addClass);
-            // 加载指定类的类对象
             return classLoader.loadClass(fullClassName);
         } catch (ClassNotFoundException e) {
             // 加载类失败，抛出LoaderRuntimeException异常
