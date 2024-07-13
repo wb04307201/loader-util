@@ -26,26 +26,35 @@ public class SpringContextUtils implements BeanFactoryAware {
     }
 
     /**
-     * 注册单例Bean
+     * 注册一个单例bean。此方法为泛型方法，允许注册任何类型的单例对象。
+     * 通过传入类类型，系统可以在运行时创建该类型的单例实例。
      *
-     * @param type Bean的类型
+     * @param type 类类型，表示要注册为单例的类。
+     * @param <T>   类型参数，表示泛型类型。
      */
     public static <T> void registerSingleton(Class<T> type) {
+        // 使用类的名称作为bean的名称来注册单例
         registerSingleton(beanName(type.getName()), type);
     }
 
     /**
-     * 注册单例Bean
+     * 注册一个单例对象到Spring Bean工厂。
      *
-     * @param beanName Bean的名称
-     * @param type     Bean的类型
+     * 该方法通过以下步骤实现单例注册：
+     * 1. 使用提供的类型创建一个对象实例。
+     * 2. 对该对象进行自动装配，使其能够与其他Spring管理的bean进行依赖注入。
+     * 3. 将该对象注册为一个单例bean，使用提供的bean名称进行标识。
+     *
+     * @param beanName 将要注册的bean的名称。
+     * @param type bean的类型，用于创建对象实例。
+     * @param <T> 泛型参数，指定bean的类型。
      */
     public static <T> void registerSingleton(String beanName, Class<T> type) {
-        // 创建Bean实例
+        // 根据提供的类型创建bean实例。
         T obj = listableBeanFactory.createBean(type);
-        // 自动装配Bean依赖
+        // 对创建的bean实例进行自动装配。
         listableBeanFactory.autowireBean(obj);
-        // 注册单例Bean
+        // 将装配好的bean实例注册为单例。
         listableBeanFactory.registerSingleton(beanName, obj);
     }
 
