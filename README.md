@@ -1,4 +1,4 @@
-# loader-util 动态编译工具
+# loader-util 动态编译、加载、执行工具
 
 [![](https://jitpack.io/v/com.gitee.wb04307201/loader-util.svg)](https://jitpack.io/#com.gitee.wb04307201/loader-util)
 [![star](https://gitee.com/wb04307201/loader-util/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/loader-util)
@@ -8,13 +8,10 @@
 ![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg) ![JDK](https://img.shields.io/badge/JDK-17+-green.svg) ![SpringBoot](https://img.shields.io/badge/Srping%20Boot-3+-green.svg)
 
 > 在应用运行期动态编译加载类、bean、rest、切面的工具  
-> 包含：
-> 1. DynamicBean 动态加载Bean并执行；
-> 2. DynamicClass 动态编译加载Class并执行；
-> 3. DynamicJar 动态加载外部jar到项目中；
-> 4. DynamicGroovy 动态编译加载Groovy并执行；
-> 5. DynamicController 动态编译加载Controller并执行；
-> 6. proxy 动态代理切面。
+> 
+> 重构了代码逻辑，将class、bean、rest合成到LoaderUtils中，  
+> 并增加DynamicClassLoader的单例模式、增加DynamicClassLoader的动态类缓存区，  
+> 缓存到内存的动态类可以在任何地方取出并执行
 
 ## 代码示例
 1. 使用[动态编译工具](https://gitee.com/wb04307201/loader-util)实现的[动态编译工具工具示例代码](https://gitee.com/wb04307201/loader-util-test)
@@ -33,123 +30,116 @@
 ```
 
 1.1.0版本后升级到jdk17 SpringBoot3+  
+1.2.0重构核心代码
 继续使用jdk 8请查看jdk8分支
 ```xml
 <dependency>
     <groupId>com.gitee.wb04307201</groupId>
     <artifactId>loader-util</artifactId>
-    <version>1.1.4</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
 ### 使用
-#### 1. DynamicClass 动态编译Class并执行
+#### 编译Class并执行
 ```java
-    @GetMapping(value = "/test/class")
-    public String testClass(){
-        String javaSourceCode = "package cn.wubo.loader.util;\n" +
-                "\n" +
-                "public class TestClass {\n" +
-                "    \n" +
-                "    public String testMethod(String name){\n" +
-                "        return String.format(\"Hello,%s!\",name);\n" +
-                "    }\n" +
-                "}";
-        String fullClassName = "cn.wubo.loader.util.TestClass";
-        String methodName = "testMethod";
-        DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, fullClassName).compiler();
-        Class<?> clasz = dynamicClass.load();
-        return (String) MethodUtils.invokeClass(clasz, methodName, "world");
-    }
+void testClass() {
+  String javaSourceCode = """
+          package cn.wubo.loader.util;
+                          
+          public class TestClass {
+                          
+              public String testMethod(String name){
+                  return String.format("Hello,%s!",name);
+              }
+          }
+          """;
+  LoaderUtils.compiler(javaSourceCode, "cn.wubo.loader.util.TestClass");
+  Class<?> clazz = LoaderUtils.load("cn.wubo.loader.util.TestClass");
+  String str = (String) MethodUtils.invokeClass(clazz, "testMethod", "world");
+}
+//注意：如果重复编译同样的类，会发生异常，如果确实需要这种场景请使用LoaderUtils.compilerOnce
+//也可以使用LoaderUtils.clear方法关闭旧的DynamicClassLoader单例后重新编译
+
+// 通过LoaderUtils.compiler编译的类会缓存到内存中，可以在其他方法中获得
+void testClassDelay() {
+  Class<?> clazz = LoaderUtils.load("cn.wubo.loader.util.TestClass");
+  String str = (String) MethodUtils.invokeClass(clazz, "testMethod", "world");
+}
+
+//如果不想将编译的类会缓存到内存，请使用LoaderUtils.compilerOnce方法
+void testClassOnce() {
+  String javaSourceCode = """
+          package cn.wubo.loader.util;
+                          
+          public class TestClass7 {
+                          
+              public String testMethod(String name){
+                  return String.format("Hello,%s!",name);
+              }
+          }
+          """;
+  Class<?> clazz = LoaderUtils.compilerOnce(javaSourceCode, "cn.wubo.loader.util.TestClass7");
+  String str = (String) MethodUtils.invokeClass(clazz, "testMethod", "world");
+}
 ```
 
-#### 2. DynamicJar 动态加载外部jar并执行
+#### 加载外部jar并执行
 ```java
-    @GetMapping(value = "/test/jar")
-    public String testJar(){
-        Class<?> clasz = DynamicJar.init("D:\\maven-repository\\repository\\cn\\hutool\\hutool-all\\5.3.2\\hutool-all-5.3.2.jar").load("cn.hutool.core.util.IdUtil");
-        return (String) MethodUtils.invokeClass(clasz, "randomUUID");
-    }
+void testJarClass() {
+  LoaderUtils.addJarPath("./hutool-all-5.8.29.jar");
+  Class<?> clazz = LoaderUtils.load("cn.hutool.core.util.IdUtil");
+  String str = (String) MethodUtils.invokeClass(clazz, "randomUUID");
+}
 ```
 
-#### 3. DynamicBean 动态编译加载Bean并执行
+#### 编译Class并加载到Bean
 > 使用DynamicBean需要配置@ComponentScan，包括cn.wubo.loader.util.SpringContextUtils文件
 ```java
-    @GetMapping(value = "/test/bean")
-    public String testBean(){
-        String javaSourceCode = "package cn.wubo.loader.util;\n" +
-                "\n" +
-                "public class TestClass {\n" +
-                "    \n" +
-                "    public String testMethod(String name){\n" +
-                "        return String.format(\"Hello,%s!\",name);\n" +
-                "    }\n" +
-                "}";
-        String fullClassName = "cn.wubo.loader.util.TestClass";
-        String methodName = "testMethod";
-        String beanName = DynamicBean.init(DynamicClass.init(javaSourceCode,fullClassName)).load();
-        return (String) MethodUtils.invokeBean(beanName,methodName,"world");
-    }
-```
-
-#### 4.可通过Groovy动态编译Class
-添加依赖
-```xml
-            <dependency>
-                <groupId>org.apache.groovy</groupId>
-                <artifactId>groovy</artifactId>
-                <version>4.0.21</version>
-            </dependency>
-```
-编译class
-```java
-    @GetMapping(value = "/loadAndInvokeGroovy")
-    public String loadAndInvokeGroovy() {
-        try (GroovyClassLoader groovyClassLoader = new GroovyClassLoader()) {
-            groovyClassLoader.parseClass(javaSourceCode);
-            Class<?> clasz = groovyClassLoader.parseClass(javaSourceCode);
-            return (String) MethodUtils.invokeClass(clasz, methodName, "world");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+void testBean() {
+  String javaSourceCode = """
+          package cn.wubo.loader.util;
+                          
+          public class TestClass2 {
+                          
+              public String testMethod(String name){
+                  return String.format("Hello,%s!",name);
+              }
+          }
+          """;
+  LoaderUtils.compiler(javaSourceCode, "cn.wubo.loader.util.TestClass2");
+  Class<?> clazz = LoaderUtils.load("cn.wubo.loader.util.TestClass2");
+  String beanName = LoaderUtils.registerSingleton(clazz);
+  String str = MethodUtils.invokeBean(beanName, "testMethod", "world");
+}
 ```
 
 #### 5. DynamicController 动态编译加载Controller并执行
 ```java
-    @GetMapping(value = "/loadController")
-    public String loadController() {
-        String fullClassName = "cn.wubo.loaderutiltest.DemoController";
-        String javaSourceCode = """
-            package cn.wubo.loaderutiltest;
+public void loadController() {
+  String fullClassName = "cn.wubo.loaderutiltest.DemoController";
+  String javaSourceCode = """
+          package cn.wubo.loaderutiltest;
+                          
+          import org.springframework.web.bind.annotation.GetMapping;
+          import org.springframework.web.bind.annotation.RequestMapping;
+          import org.springframework.web.bind.annotation.RequestParam;
+          import org.springframework.web.bind.annotation.RestController;
 
-            import lombok.AllArgsConstructor;
-            import lombok.Data;
-            import lombok.NoArgsConstructor;
-            import org.springframework.web.bind.annotation.GetMapping;
-            import org.springframework.web.bind.annotation.RequestMapping;
-            import org.springframework.web.bind.annotation.RequestParam;
-            import org.springframework.web.bind.annotation.RestController;
+          @RestController
+          @RequestMapping(value = "test")
+          public class DemoController {
 
-            @RestController
-            @RequestMapping(value = "test")
-            public class DemoController {
-
-                @GetMapping(value = "hello")
-                public User hello(@RequestParam(value = "name") String name) {
-                    return new User(name);
-                }
-
-                @Data
-                @AllArgsConstructor
-                @NoArgsConstructor
-                public static class User {
-                    private String name;
-                }
-            }
-            """;
-        return DynamicController.init(DynamicClass.init(javaSourceCode, fullClassName)).load();
-    }
+              @GetMapping(value = "hello")
+              public String hello(@RequestParam(value = "name") String name) {
+                  return String.format("Hello,%s!",name);
+              }
+          }
+          """;
+  LoaderUtils.compiler(javaSourceCode, "cn.wubo.loaderutiltest.DemoController");
+  Class<?> clazz = LoaderUtils.load("cn.wubo.loaderutiltest.DemoController");
+  String beanName = LoaderUtils.registerController(clazz);
+}
 ```
 ```http request
 GET http://localhost:8080/test/hello?name=world
@@ -158,25 +148,28 @@ Accept: application/json
 Hello,world!
 ```
 
-#### 6. proxy 动态代理切面
+#### 动态增加切面代理
 ```java
-    @GetMapping(value = "/testAspect")
-    public String testAspect() throws InstantiationException, IllegalAccessException {
-        String javaSourceCode = "package cn.wubo.loader.util;\n" +
-        "\n" +
-        "public class TestClass {\n" +
-        "    \n" +
-        "    public String testMethod(String name){\n" +
-        "        return String.format(\"Hello,%s!\",name);\n" +
-        "    }\n" +
-        "}";
-        String fullClassName = "cn.wubo.loader.util.TestClass";
-        String methodName = "testMethod";
-        DynamicClass dynamicClass = DynamicClass.init(javaSourceCode, fullClassName).compiler();
-        Class<?> clasz = dynamicClass.load();
-        Object obj = MethodUtils.proxy(clasz.newInstance());
-        return (String) MethodUtils.invokeClass(obj, methodName, "world");
-    }
+void testAspect() {
+  String javaSourceCode = """
+          package cn.wubo.loader.util;
+                          
+          public class TestClass6 {
+                          
+              public String testMethod(String name){
+                  return String.format("Hello,%s!",name);
+              }
+          }
+          """;
+  LoaderUtils.compiler(javaSourceCode, "cn.wubo.loader.util.TestClass6");
+  Class<?> clazz = LoaderUtils.load("cn.wubo.loader.util.TestClass6");
+  try {
+    Object obj = MethodUtils.proxy(clazz.newInstance());
+    String str = MethodUtils.invokeClass(obj, "testMethod", "world");
+  } catch (InstantiationException | IllegalAccessException e) {
+    throw new RuntimeException(e);
+  }
+}
 ```
 输出示例
 ```text
