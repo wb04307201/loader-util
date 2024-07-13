@@ -4,34 +4,36 @@ import javax.tools.SimpleJavaFileObject;
 import java.net.URI;
 
 /**
- * @description:java源码保存对象(内存：不生成class文件)
- * @author: wubo
- * @date: 2022-11-21
+ * JavaMemSource类继承自SimpleJavaFileObject，用于在内存中表示Java源代码。
+ * 该类的主要作用是提供一种方式来存储和访问Java源代码字符串，而不需要将源代码写入到实际的文件中。
  */
 public class JavaMemSource extends SimpleJavaFileObject{
 
 	/**
-     * java源码
+	 * 存储Java源代码的字符串。
 	 */
 	private String javaSourceCode;
 
+	/**
+	 * 构造函数初始化JavaMemSource对象。
+	 *
+	 * @param name Java源文件的全限定名，使用'.'作为包名的分隔符。
+	 * @param javaSourceCode Java源代码的字符串表示。
+	 */
 	public JavaMemSource(String name, String javaSourceCode) {
 		super(URI.create("string:///" + name.replace('.', '/')+ Kind.SOURCE.extension), Kind.SOURCE);
 		this.javaSourceCode = javaSourceCode;
 	}
-	
+
 	/**
-	 * 此方法用于获取源代码的注释内容。
-	 * 它会返回源代码文件中的字符内容，包括注释部分。
+	 * 获取Java源代码的字符序列。
 	 *
-	 * @param ignoreEncodingErrors 指定是否忽略编码错误。如果设置为true，
-	 *                             在读取源代码文件时将忽略任何编码错误，
-	 *                             否则遇到编码错误将抛出异常。
-	 * @return 返回源代码的字符序列，包括代码中的所有注释。
+	 * @param ignoreEncodingErrors 是否忽略编码错误。该参数在此实现中未使用，因为源代码以字符串形式存储。
+	 * @return 返回Java源代码的字符序列。
 	 */
 	@Override
 	public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-	    // 直接返回存储的源代码字符序列
 	    return javaSourceCode;
 	}
 }
+

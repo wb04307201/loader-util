@@ -6,41 +6,44 @@ import java.io.OutputStream;
 import java.net.URI;
 
 /**
- * @description: class保存对象(内存 ： 不生成class文件)
- * @author: wubo
- * @date: 2022-11-21
+ * JavaMemClass 是为了在内存中处理Java类文件而设计的。
+ * 它继承自SimpleJavaFileObject，用于表示类文件的内容。
  */
 public class JavaMemClass extends SimpleJavaFileObject {
 
+    /**
+     * 用于存储类文件字节码的 ByteArrayOutputStream。
+     */
     protected final ByteArrayOutputStream classByteArrayOutputStream = new ByteArrayOutputStream();
 
+    /**
+     * 构造函数初始化JavaMemClass对象。
+     *
+     * @param name 类的全限定名，使用点（.）分隔。
+     * @param kind 类文件的类型，例如SOURCE或CLASS。
+     */
     public JavaMemClass(String name, Kind kind) {
         super(URI.create("string:///" + name.replace('.', '/')
                 + kind.extension), kind);
     }
 
     /**
-     * 获取字节数组
-     * <p>
-     * 该方法不需要接受任何参数，它将返回一个字节数组。
-     * 主要用于将内部缓存的字节信息转换为字节数组输出。
+     * 获取类文件的字节码。
      *
-     * @return byte[] 返回一个包含字节信息的数组
+     * @return 类文件的字节码数组。
      */
     public byte[] getBytes() {
-        // 将内部存储的字节流转换为字节数组并返回
         return classByteArrayOutputStream.toByteArray();
     }
 
     /**
-     * 重写openOutputStream方法
-     * 这个方法重写了父类中的openOutputStream方法，目的是提供一个特定的输出流返回。
+     * 打开一个输出流，用于写入类文件的内容。
      *
-     * @return 返回classByteArrayOutputStream对象 - 这是一个OutputStream的实例，
-     * 用于允许外部写入数据到类的内部缓存中。
+     * @return 一个ByteArrayOutputStream，用于写入类文件的字节码。
      */
     @Override
     public OutputStream openOutputStream() {
         return classByteArrayOutputStream;
     }
 }
+
