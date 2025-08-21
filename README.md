@@ -1,4 +1,6 @@
-# loader-util 动态编译、加载、执行工具
+# Loader-Util - 动态类加载工具库
+
+> 一个用于Java动态类加载、编译和Spring集成的工具库，支持运行时动态编译Java代码、加载类文件、注册Spring Bean等功能。
 
 [![](https://jitpack.io/v/com.gitee.wb04307201/loader-util.svg)](https://jitpack.io/#com.gitee.wb04307201/loader-util)
 [![star](https://gitee.com/wb04307201/loader-util/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/loader-util)
@@ -7,15 +9,60 @@
 [![fork](https://img.shields.io/github/forks/wb04307201/loader-util)](https://github.com/wb04307201/loader-util)  
 ![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg) ![JDK](https://img.shields.io/badge/JDK-17+-green.svg) ![SpringBoot](https://img.shields.io/badge/Srping%20Boot-3+-green.svg)
 
-> 在应用运行期动态编译加载类、bean、rest、切面的工具  
-> 
-> 重构了代码逻辑，将class、bean、rest合成到LoaderUtils中，  
-> 并增加DynamicClassLoader的单例模式、增加DynamicClassLoader的动态类缓存区，  
-> 缓存到内存的动态类可以在任何地方取出并执行
-
 ## 代码示例
 1. 使用[动态编译工具](https://gitee.com/wb04307201/loader-util)实现的[动态编译工具工具示例代码](https://gitee.com/wb04307201/loader-util-test)
 2. 使用[动态调度](https://gitee.com/wb04307201/dynamic-schedule-spring-boot-starter)、[消息中间件](https://gitee.com/wb04307201/message-spring-boot-starter)、[动态编译工具](https://gitee.com/wb04307201/loader-util)、[实体SQL工具](https://gitee.com/wb04307201/sql-util)实现的[在线编码、动态调度、发送钉钉群消息、快速构造web页面Demo](https://gitee.com/wb04307201/dynamic-schedule-demo)
+
+## 功能特性
+
+### 1. 动态编译Java代码
+- 支持在运行时动态编译Java源代码
+- 编译结果存储在内存中，无需写入磁盘文件
+- 支持编译包含内部类的复杂Java代码
+
+### 2. 动态类加载
+- 提供内存级类加载器 [DynamicClassLoader](src\main\java\cn\wubo\loader\util\class_loader\DynamicClassLoader.java#L16-L96)
+- 支持从JAR文件加载类
+- 支持单例模式和一次性加载模式
+
+### 3. Spring框架集成
+- 动态注册单例Bean到Spring上下文
+- 动态注册控制器(Controller)并自动映射请求路径
+- 支持Bean的动态注销和重新注册
+
+### 4. 方法调用工具
+- 提供便捷的方法调用API
+- 支持类级别和Bean级别的方法调用
+- 集成CGLIB代理和切面编程支持
+- 
+### 5. 切面编程支持
+- 内置简单切面实现，可记录方法执行时间
+- 支持自定义切面逻辑
+- 提供方法执行前、执行后和异常处理的拦截点
+
+## 核心组件
+
+### LoaderUtils
+主要的工具类，提供以下功能：
+- [compiler()](src\main\java\cn\wubo\loader\util\LoaderUtils.java#L23-L32): 编译Java源代码并加载到内存
+- [compilerOnce()](src\main\java\cn\wubo\loader\util\LoaderUtils.java#L45-L60): 一次性编译并加载Java代码
+- [load()](src\main\java\cn\wubo\loader\util\LoaderUtils.java#L68-L77): 加载已编译的类
+- [addJarPath()](src\main\java\cn\wubo\loader\util\LoaderUtils.java#L84-L92): 添加JAR文件到类路径
+- [registerSingleton()](src\main\java\cn\wubo\loader\util\LoaderUtils.java#L103-L114): 注册单例Bean
+- [registerController()](src\main\java\cn\wubo\loader\util\LoaderUtils.java#L125-L136): 注册控制器
+- [clear()](src\main\java\cn\wubo\loader\util\LoaderUtils.java#L144-L146): 清理动态类加载器缓存
+
+### MethodUtils
+方法调用工具类，提供：
+- [invokeClass()](src\main\java\cn\wubo\loader\util\MethodUtils.java#L28-L39): 调用类中的方法
+- [invokeBean()](src\main\java\cn\wubo\loader\util\MethodUtils.java#L74-L76): 调用Spring Bean中的方法
+- [proxy()](src\main\java\cn\wubo\loader\util\MethodUtils.java#L105-L107): 创建代理对象并应用切面
+
+### SpringContextUtils
+Spring上下文工具类，提供：
+- Bean的注册和注销
+- 控制器的动态注册
+- Spring上下文访问功能
 
 ## 快速开始
 ### 引入依赖
