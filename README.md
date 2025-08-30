@@ -1,4 +1,4 @@
-# Loader-Util - 动态类加载工具库
+# Loader Util - 动态类加载工具库
 
 > 一个用于Java动态类加载、编译和Spring集成的工具库，支持运行时动态编译Java代码、加载类文件、注册Spring Bean等功能。
 
