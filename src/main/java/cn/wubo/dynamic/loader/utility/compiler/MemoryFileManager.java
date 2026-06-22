@@ -6,17 +6,23 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 
-public class MemoryFileManager<T extends JavaFileManager> extends ForwardingJavaFileManager<T> {
+/**
+ * 把编译输出的 CLASS kind 文件对象委托给 {@link MemoryClassFileObject}，其他 kind 透传给底层 file manager。
+ */
+public class MemoryFileManager extends ForwardingJavaFileManager<JavaFileManager> {
 
-    protected MemoryFileManager(T fileManager) {
+    private final DynamicClassLoader loader;
+
+    protected MemoryFileManager(JavaFileManager fileManager, DynamicClassLoader loader) {
         super(fileManager);
+        this.loader = loader;
     }
 
     @Override
     public JavaFileObject getJavaFileForOutput(Location location, String name,
                                                JavaFileObject.Kind kind, FileObject sibling) throws IOException {
         if (kind == JavaFileObject.Kind.CLASS) {
-            return new MemoryClassFileObject(name);
+            return new MemoryClassFileObject(name, loader);
         }
         return super.getJavaFileForOutput(location, name, kind, sibling);
     }
