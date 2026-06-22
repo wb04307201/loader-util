@@ -2640,64 +2640,19 @@ public final class DynamicRuntime implements AutoCloseable {
 
 - [ ] **Step 10.2: 写集成测试**
 
-文件 `src/test/java/cn/wubo/dynamic/loader/utility/DynamicRuntimeIT.java`：
+**拆成两个文件**——纯单测一个，Spring IT 一个。JUnit 5 不会把 `@SpringBootTest` 应用到非 `@Nested` 嵌套类上。
+
+文件 `src/test/java/cn/wubo/dynamic/loader/utility/DynamicRuntimeTest.java`（纯单测）：
 
 ```java
 package cn.wubo.dynamic.loader.utility;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class DynamicRuntimeIT {
-
-    @SpringBootConfiguration
-    @EnableAutoConfiguration
-    static class TestApp {
-        public static void main(String[] args) {
-            SpringApplication.run(TestApp.class, args);
-        }
-    }
-
-    @SpringBootTest(classes = TestApp.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-    static class WithSpring {
-        @org.springframework.beans.factory.annotation.Autowired ApplicationContext ctx;
-        @org.springframework.beans.factory.annotation.Autowired TestRestTemplate rest;
-        @LocalServerPort int port;
-
-        @Test
-        void compileRegisterAndHitEndpoint() throws Exception {
-            DefaultListableBeanFactory bf = (DefaultListableBeanFactory)
-                ((ConfigurableApplicationContext) ctx).getBeanFactory();
-            String src = """
-                @org.springframework.web.bind.annotation.RestController
-                public class DynamicCtrl {
-                    @org.springframework.web.bind.annotation.GetMapping("/api/dyn")
-                    public String dyn() { return "dyn"; }
-                }
-                """;
-            try (DynamicRuntime runtime = DynamicRuntime.withBeanFactory(bf)) {
-                Class<?> clazz = runtime.compileAndLoad(src);
-                runtime.registerController("dynamicCtrl", clazz);
-            }
-            // 注：runtime 关闭后 ClassLoader 字节码释放，但 Bean 仍在容器中
-            assertThat(rest.getForEntity("http://localhost:" + port + "/api/dyn", String.class)
-                          .getBody()).isEqualTo("dyn");
-        }
-    }
+class DynamicRuntimeTest {
 
     @Test
     void create_withoutBeanFactory_beanOpsThrow() {
@@ -2713,6 +2668,66 @@ class DynamicRuntimeIT {
         DynamicRuntime runtime = DynamicRuntime.create();
         runtime.close();
         assertThat(runtime.getClassLoader().isClosed()).isTrue();
+    }
+
+    @Test
+    void compileAndLoad_returnsClass() {
+        try (DynamicRuntime runtime = DynamicRuntime.create()) {
+            Class<?> clazz = runtime.compileAndLoad("public class RT { public int x() { return 7; } }");
+            assertThat(clazz).isNotNull();
+            assertThat(clazz.getSimpleName()).isEqualTo("RT");
+        }
+    }
+}
+```
+
+文件 `src/test/java/cn/wubo/dynamic/loader/utility/DynamicRuntimeIT.java`（Spring IT）：
+
+```java
+package cn.wubo.dynamic.loader.utility;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest(classes = DynamicRuntimeIT.TestApp.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class DynamicRuntimeIT {
+
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    static class TestApp {
+    }
+
+    @Autowired ApplicationContext ctx;
+    @Autowired TestRestTemplate rest;
+    @LocalServerPort int port;
+
+    @Test
+    void compileRegisterAndHitEndpoint() throws Exception {
+        DefaultListableBeanFactory bf = (DefaultListableBeanFactory)
+            ((ConfigurableApplicationContext) ctx).getBeanFactory();
+        String src = """
+            @org.springframework.web.bind.annotation.RestController
+            public class DynamicCtrl {
+                @org.springframework.web.bind.annotation.GetMapping("/api/dyn")
+                public String dyn() { return "dyn"; }
+            }
+            """;
+        try (DynamicRuntime runtime = DynamicRuntime.withBeanFactory(bf)) {
+            Class<?> clazz = runtime.compileAndLoad(src);
+            runtime.registerController("dynamicCtrl", clazz);
+        }
+        assertThat(rest.getForEntity("http://localhost:" + port + "/api/dyn", String.class)
+                      .getBody()).isEqualTo("dyn");
     }
 }
 ```
