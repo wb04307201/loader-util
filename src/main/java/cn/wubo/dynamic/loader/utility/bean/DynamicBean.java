@@ -1,6 +1,6 @@
 package cn.wubo.dynamic.loader.utility.bean;
 
-import cn.wubo.dynamic.loader.utility.exception.BeanRuntimeException;
+import cn.wubo.dynamic.loader.utility.exception.BeanRegistrationException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -72,7 +72,7 @@ public class DynamicBean {
                 // 如果存在请求映射信息，则将其从映射器中注销
                 if (requestMappingInfo != null) requestMappingHandlerMapping.unregisterMapping(requestMappingInfo);
             } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-                throw new BeanRuntimeException(e.getMessage(), e);
+                throw new BeanRegistrationException(e.getMessage(), e);
             }
         });
     }
@@ -96,7 +96,7 @@ public class DynamicBean {
             method.setAccessible(true);
             method.invoke(requestMappingHandlerMapping, beanName);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new BeanRuntimeException(e.getMessage(), e);
+            throw new BeanRegistrationException(e.getMessage(), e);
         }
     }
 
