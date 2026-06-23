@@ -281,4 +281,54 @@ class DynamicClassLoaderTest {
             assertThat(inst.getClass().getDeclaredMethod("s").invoke(inst)).isEqualTo("x");
         }
     }
+
+    // ---------- 边角覆盖（提升 jacoco 覆盖率）----------
+
+    @Test
+    void isClosed_reflectsLifecycle() {
+        DynamicClassLoader loader = DynamicClassLoader.create();
+        assertThat(loader.isClosed()).isFalse();
+        loader.close();
+        assertThat(loader.isClosed()).isTrue();
+    }
+
+    @Test
+    void parseClassName_topLevelClass() {
+        assertThat(DynamicClassLoader.parseClassName("public class Foo {}")).isEqualTo("Foo");
+    }
+
+    @Test
+    void parseClassName_packagedClass() {
+        assertThat(DynamicClassLoader.parseClassName(
+            "package com.x; public class Bar {}")).isEqualTo("com.x.Bar");
+    }
+
+    @Test
+    void parseClassName_noTypeDeclaration_throws() {
+        // 只有 package 声明，没有类——JavaParser 会给出空 types 流。
+        assertThatThrownBy(() -> DynamicClassLoader.parseClassName("package com.x;"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("No className found");
+    }
+
+    @Test
+    void findClass_unknownClass_delegatesToParent() {
+        // 走 findClass 中 bytes==null 的 fallback → super.findClass
+        // 父 ClassLoader 找不到 → ClassNotFoundException
+        try (DynamicClassLoader loader = DynamicClassLoader.create()) {
+            assertThatThrownBy(() -> loader.loadClass("totally.bogus.ClassName"))
+                .isInstanceOf(ClassNotFoundException.class);
+        }
+    }
+
+    @Test
+    void addJarPath_malformed_throws() {
+        // URLClassLoader 会拒绝非法的 URL；这里 force 一个含空格的"jar:file:"路径
+        // 来触发 MalformedURLException 分支。
+        try (DynamicClassLoader cl = DynamicClassLoader.create()) {
+            assertThatThrownBy(() -> cl.addJarPath("not a real path with spaces!.jar"))
+                .isInstanceOf(CompilationException.class);
+        }
+    }
+
 }
