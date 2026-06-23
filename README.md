@@ -11,6 +11,8 @@
 
 ### Maven 依赖
 
+库分两个模块，按需选择：
+
 ```xml
 <repositories>
     <repository>
@@ -19,12 +21,27 @@
     </repository>
 </repositories>
 
+<!-- Spring Boot 集成（推荐）：含 DynamicRuntime 门面 + DynamicBean + 自动配置 -->
 <dependency>
     <groupId>io.github.wb04307201</groupId>
-    <artifactId>dynamic-loader-utility</artifactId>
+    <artifactId>dynamic-loader-utility-spring-boot-starter</artifactId>
     <version>1.0.0</version>
 </dependency>
+
+<!-- 纯 JDK / 非 Spring：只要动态编译 + AOP 代理（不拉 spring-webmvc） -->
+<!--
+<dependency>
+    <groupId>io.github.wb04307201</groupId>
+    <artifactId>dynamic-loader-utility-core</artifactId>
+    <version>1.0.0</version>
+</dependency>
+-->
 ```
+
+| 模块 | 内容 | 依赖 |
+| --- | --- | --- |
+| `dynamic-loader-utility-core` | `compiler` + `aspect` + `exception` | javaparser + byte-buddy + spring-core + slf4j |
+| `dynamic-loader-utility-spring-boot-starter` | 上述 + `DynamicRuntime` + `bean` 包 + 自动配置 | 上述 + spring-webmvc + spring-boot-autoconfigure |
 
 ### 5 行跑通
 
@@ -37,6 +54,16 @@ try (DynamicRuntime runtime = DynamicRuntime.create()) {
     System.out.println(o.getClass().getMethod("hi").invoke(o));
 }
 ```
+
+### 包 ↔ 模块
+
+| Java 包 | 所在模块 |
+| --- | --- |
+| `cn.wubo.dynamic.loader.utility.compiler` | `core` |
+| `cn.wubo.dynamic.loader.utility.aspect` | `core` |
+| `cn.wubo.dynamic.loader.utility.exception` | `core` |
+| `cn.wubo.dynamic.loader.utility`（`DynamicRuntime`） | `spring-boot-starter` |
+| `cn.wubo.dynamic.loader.utility.bean` | `spring-boot-starter` |
 
 ## 三大能力
 
@@ -223,9 +250,15 @@ java -jar -Dloader.path=lib/ your-app.jar
 
 ## 构建、测试、CI
 
+仓库根目录是 parent pom，所有命令在根目录跑：
+
 ```bash
-mvn -B test       # 单元测试（123 个）
-mvn -B verify     # 单元 + 集成测试（123 个 + IT，JaCoCo 覆盖率报告生成到 target/site/jacoco/）
+mvn -B test       # 全部模块的单元测试（113 个，分布在 core + starter）
+mvn -B verify     # 单元 + 集成测试（共 123 个 = 113 unit + 10 IT，JaCoCo 报告生成到各模块 target/site/jacoco/）
+
+# 单独跑某个模块
+mvn -B test -pl dynamic-loader-utility-core -am
+mvn -B verify -pl dynamic-loader-utility-test -am
 ```
 
 CI：GitHub Actions 跑在 `ubuntu-latest` + JDK 17 上，push 与 PR 都触发。
