@@ -1,8 +1,8 @@
-# Dynamic Loader Utility 动态加载器工具包
+# dynamo-spring dynamo-spring 工具包
 
 > 一个用于动态加载和管理 Java 类的工具库，支持动态编译、AOP 代理、Spring Bean 管理。会话模型 ClassLoader、ByteBuddy 代理、子类化 Spring MVC、自动配置。
 
-[![](https://jitpack.io/v/io.github.wb04307201/dynamic-loader-utility.svg)](https://jitpack.io/#io.github.wb04307201/dynamic-loader-utility)
+[![](https://jitpack.io/v/io.github.wb04307201/dynamo-spring.svg)](https://jitpack.io/#io.github.wb04307201/dynamo-spring)
 ![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg)
 ![JDK](https://img.shields.io/badge/JDK-17+-green.svg)
 ![SpringBoot](https://img.shields.io/badge/Spring%20Boot-3.5+-green.svg)
@@ -14,17 +14,10 @@
 库分两个模块，按需选择：
 
 ```xml
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-
-<!-- Spring Boot 集成（推荐）：含 DynamicRuntime 门面 + DynamicBean + 自动配置 -->
+<!-- Spring Boot 集成（推荐）：含 DynamoRuntime 门面 + DynamoBean + 自动配置 -->
 <dependency>
     <groupId>io.github.wb04307201</groupId>
-    <artifactId>dynamic-loader-utility-spring-boot-starter</artifactId>
+    <artifactId>dynamo-spring-spring-boot-starter</artifactId>
     <version>1.0.0</version>
 </dependency>
 
@@ -32,7 +25,7 @@
 <!--
 <dependency>
     <groupId>io.github.wb04307201</groupId>
-    <artifactId>dynamic-loader-utility-core</artifactId>
+    <artifactId>dynamo-spring-core</artifactId>
     <version>1.0.0</version>
 </dependency>
 -->
@@ -40,15 +33,15 @@
 
 | 模块 | 内容 | 依赖 |
 | --- | --- | --- |
-| `dynamic-loader-utility-core` | `compiler` + `aspect` + `exception` | javaparser + byte-buddy + spring-core + slf4j |
-| `dynamic-loader-utility-spring-boot-starter` | 上述 + `DynamicRuntime` + `bean` 包 + 自动配置 | 上述 + spring-webmvc + spring-boot-autoconfigure |
+| `dynamo-spring-core` | `compiler` + `aspect` + `exception` | javaparser + byte-buddy + spring-core + slf4j |
+| `dynamo-spring-spring-boot-starter` | 上述 + `DynamoRuntime` + `bean` 包 + 自动配置 | 上述 + spring-webmvc + spring-boot-autoconfigure |
 
 ### 5 行跑通
 
 ```java
-import cn.wubo.dynamic.loader.utility.DynamicRuntime;
+import cn.wubo.dynamo.spring.DynamoRuntime;
 
-try (DynamicRuntime runtime = DynamicRuntime.create()) {
+try (DynamoRuntime runtime = DynamoRuntime.create()) {
     Class<?> clazz = runtime.compileAndLoad("public class A { public String hi() { return \"hi\"; } }");
     Object o = clazz.getDeclaredConstructor().newInstance();
     System.out.println(o.getClass().getMethod("hi").invoke(o));
@@ -59,24 +52,24 @@ try (DynamicRuntime runtime = DynamicRuntime.create()) {
 
 | Java 包 | 所在模块 |
 | --- | --- |
-| `cn.wubo.dynamic.loader.utility.compiler` | `core` |
-| `cn.wubo.dynamic.loader.utility.aspect` | `core` |
-| `cn.wubo.dynamic.loader.utility.exception` | `core` |
-| `cn.wubo.dynamic.loader.utility`（`DynamicRuntime`） | `spring-boot-starter` |
-| `cn.wubo.dynamic.loader.utility.bean` | `spring-boot-starter` |
+| `cn.wubo.dynamo.spring.compiler` | `core` |
+| `cn.wubo.dynamo.spring.aspect` | `core` |
+| `cn.wubo.dynamo.spring.exception` | `core` |
+| `cn.wubo.dynamo.spring`（`DynamoRuntime`） | `spring-boot-starter` |
+| `cn.wubo.dynamo.spring.bean` | `spring-boot-starter` |
 
 ## 三大能力
 
 ### 1. 动态编译（`compiler` 包）
 
-`DynamicClassLoader` 会话模型 ClassLoader——每个实例独立持有 classpath、字节码缓存、文件管理器。
+`DynamoClassLoader` 会话模型 ClassLoader——每个实例独立持有 classpath、字节码缓存、文件管理器。
 
 ```java
-import cn.wubo.dynamic.loader.utility.compiler.CompilationResult;
-import cn.wubo.dynamic.loader.utility.compiler.CompilerOptions;
-import cn.wubo.dynamic.loader.utility.compiler.DynamicClassLoader;
+import cn.wubo.dynamo.spring.compiler.CompilationResult;
+import cn.wubo.dynamo.spring.compiler.CompilerOptions;
+import cn.wubo.dynamo.spring.compiler.DynamoClassLoader;
 
-try (DynamicClassLoader loader = DynamicClassLoader.create()) {
+try (DynamoClassLoader loader = DynamoClassLoader.create()) {
     CompilationResult result = loader.compile(sourceCode);
     if (result.isSuccess()) {
         Class<?> clazz = result.getCompiledClass();
@@ -100,7 +93,7 @@ loader.compile(source, CompilerOptions.create()
 ```java
 // 指定父 ClassLoader（用于在隔离环境加载 JDK 自带类之外的类）
 ClassLoader parent = Thread.currentThread().getContextClassLoader();
-DynamicClassLoader loader = DynamicClassLoader.create(parent);
+DynamoClassLoader loader = DynamoClassLoader.create(parent);
 
 // 直接喂字节码（不经过源码编译）
 Class<?> clazz = loader.defineClass("com.example.Precompiled", bytes);
@@ -121,8 +114,8 @@ try {
 基于 ByteBuddy 的代理。`IAdvice` 三方法切面接口。
 
 ```java
-import cn.wubo.dynamic.loader.utility.aspect.DynamicProxy;
-import cn.wubo.dynamic.loader.utility.aspect.IAdvice;
+import cn.wubo.dynamo.spring.aspect.DynamoProxy;
+import cn.wubo.dynamo.spring.aspect.IAdvice;
 import java.lang.reflect.Method;
 
 IAdvice advice = new IAdvice() {
@@ -130,15 +123,15 @@ IAdvice advice = new IAdvice() {
     public void after(Object t, Method m, Object[] a, Object r) { /* ... */ }
     public void afterThrow(Object t, Method m, Object[] a, Throwable c) { /* ... */ }
 };
-MyService proxy = DynamicProxy.proxy(target, advice);
+MyService proxy = DynamoProxy.proxy(target, advice);
 ```
 
 或用内置 `SimpleAdvice`（线程安全，基于 `ThreadLocal`）：
 
 ```java
-import cn.wubo.dynamic.loader.utility.aspect.SimpleAdvice;
+import cn.wubo.dynamo.spring.aspect.SimpleAdvice;
 
-MyService proxy = DynamicProxy.proxy(MyService.class, new SimpleAdvice());
+MyService proxy = DynamoProxy.proxy(MyService.class, new SimpleAdvice());
 ```
 
 > **已知限制**：`SimpleAdvice` 不支持同线程的 re-entrant 调用——同线程在 `before` 与 `after` 之间再次进入任何用 `SimpleAdvice` 代理的方法时，内层会覆盖外层的计时器。
@@ -148,36 +141,36 @@ MyService proxy = DynamicProxy.proxy(MyService.class, new SimpleAdvice());
 不反射 Spring 私有 API——通过子类化 `RequestMappingHandlerMapping` 实现。
 
 ```java
-import cn.wubo.dynamic.loader.utility.bean.DynamicBean;
+import cn.wubo.dynamo.spring.bean.DynamoBean;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 DefaultListableBeanFactory bf = (DefaultListableBeanFactory) ctx.getBeanFactory();
 
 // 注册 controller（bean 定义 + 路由）
-DynamicBean.registerController(bf, "myCtrl", MyController.class);
+DynamoBean.registerController(bf, "myCtrl", MyController.class);
 // 注销 controller（只移除路由；bean 定义保留在容器中）
-DynamicBean.unregisterController(bf, "myCtrl");
+DynamoBean.unregisterController(bf, "myCtrl");
 // 真正"替换"：先注销旧路由，再注册新类型
-DynamicBean.unregisterController(bf, "myCtrl");
-DynamicBean.registerController(bf, "myCtrl", NewType.class);
+DynamoBean.unregisterController(bf, "myCtrl");
+DynamoBean.registerController(bf, "myCtrl", NewType.class);
 // 纯单例 Bean 注册（不涉及路由）
-DynamicBean.registerSingleton(bf, "myBean", MyBean.class);
-DynamicBean.unregisterSingleton(bf, "myBean");
+DynamoBean.registerSingleton(bf, "myBean", MyBean.class);
+DynamoBean.unregisterSingleton(bf, "myBean");
 ```
 
 > **关于 `refreshController`**：`refreshController(bf, name, type)` 等价于 `registerController`——
 > 它会注册新类型的路由，但**不清理**旧路由。如需真正替换，请先 `unregisterController` 再注册。
 
-### 4. DynamicRuntime 高级门面
+### 4. DynamoRuntime 高级门面
 
 把三件套粘到一个生命周期里：
 
 ```java
-import cn.wubo.dynamic.loader.utility.DynamicRuntime;
+import cn.wubo.dynamo.spring.DynamoRuntime;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 DefaultListableBeanFactory bf = (DefaultListableBeanFactory) ctx.getBeanFactory();
-try (DynamicRuntime runtime = DynamicRuntime.withBeanFactory(bf)) {
+try (DynamoRuntime runtime = DynamoRuntime.withBeanFactory(bf)) {
     Class<?> controller = runtime.compileAndLoad(sourceCode);
     runtime.registerController("dynamicCtrl", controller);
     // 路由已生效
@@ -185,25 +178,25 @@ try (DynamicRuntime runtime = DynamicRuntime.withBeanFactory(bf)) {
 // ClassLoader 关闭后，Bean 仍在容器中（由 Spring 生命周期管理）
 
 // runtime 还支持：registerBean / unregisterBean / unregisterController /
-// refreshController / addJarPath / compile / compileAndLoad（与 DynamicClassLoader 同语义）
+// refreshController / addJarPath / compile / compileAndLoad（与 DynamoClassLoader 同语义）
 // 不带 BeanFactory 的轻量用法：
-try (DynamicRuntime runtime = DynamicRuntime.create()) {
+try (DynamoRuntime runtime = DynamoRuntime.create()) {
     Class<?> c = runtime.compileAndLoad(source);
 }
 // 或指定父 ClassLoader：
-try (DynamicRuntime runtime = DynamicRuntime.create(customParent)) { ... }
+try (DynamoRuntime runtime = DynamoRuntime.create(customParent)) { ... }
 ```
 
 ## Spring Boot 自动配置
 
 引入依赖后自动激活。无需 `@EnableXxx`、无需 `@Import`：
 
-- `WebMvcRegistrations` 替换默认 `RequestMappingHandlerMapping` 为 `DynamicRequestMappingHandlerMapping`
+- `WebMvcRegistrations` 替换默认 `RequestMappingHandlerMapping` 为 `DynamoRequestMappingHandlerMapping`
 - `spring.mvc.*` 所有属性继续生效（WebMvcRegistrations 透明替换 mapping，setter 全部继承到子类）
 
 如果需要禁用：
 ```properties
-spring.autoconfigure.exclude=cn.wubo.dynamic.loader.utility.bean.DynamicBeanAutoConfiguration
+spring.autoconfigure.exclude=cn.wubo.dynamo.spring.bean.DynamoBeanAutoConfiguration
 ```
 
 ## 生产环境 classpath 配置
@@ -257,22 +250,22 @@ mvn -B test       # 全部模块的单元测试（113 个，分布在 core + sta
 mvn -B verify     # 单元 + 集成测试（共 123 个 = 113 unit + 10 IT，JaCoCo 报告生成到各模块 target/site/jacoco/）
 
 # 单独跑某个模块
-mvn -B test -pl dynamic-loader-utility-core -am
-mvn -B verify -pl dynamic-loader-utility-test -am
+mvn -B test -pl dynamo-spring-core -am
+mvn -B verify -pl dynamo-spring-test -am
 ```
 
 CI：GitHub Actions 跑在 `ubuntu-latest` + JDK 17 上，push 与 PR 都触发。
 
 ## 演示应用
 
-`dynamic-loader-utility-test` 模块自带一个可启动的 Spring Boot Web 应用，把三大能力 + DynamicRuntime 高级门面拼到 4 个 tab 里，浏览器里直接玩：
+`dynamo-spring-test` 模块自带一个可启动的 Spring Boot Web 应用，把三大能力 + DynamoRuntime 高级门面拼到 4 个 tab 里，浏览器里直接玩：
 
 ```bash
 # 安装所有模块到本地仓库（首次需要；spring-boot:run 依赖 starter 模块的 jar）
 mvn -B install -DskipTests
 
 # 启动 demo（默认 http://localhost:8080）
-mvn -B -pl dynamic-loader-utility-test spring-boot:run \
+mvn -B -pl dynamo-spring-test spring-boot:run \
   -Dspring-boot.run.jvmArguments="-Dnet.bytebuddy.experimental=true"
 ```
 
@@ -284,13 +277,13 @@ mvn -B -pl dynamic-loader-utility-test spring-boot:run \
 | --- | --- | --- |
 | 1. 动态编译 | `/api/compile/*` | 源码 → 编译 → 加载 → 实例化 → 反射调用；列已加载实例，删除可释放 ClassLoader |
 | 2. AOP 拦截 | `/api/aspect/*` | 源码 → 编译 + 创建 ByteBuddy 代理；advice 选 `log` / `timing` / `throw`；调用时返回累积的 `before / after / afterThrow` 日志 |
-| 3. 动态 Controller | `/api/bean/*` | 源码（`@RestController`）→ 编译 → `DynamicBean.registerController` → 浏览器立刻可路由；注销后访问 404；列表显示当前注册的 controller 及其路由 |
-| 4. DynamicRuntime | `/api/runtime/*` | 开 session → session 内 compile / instantiate / invoke / registerController / unregisterController；关 session 后 Bean 仍在容器中 |
+| 3. 动态 Controller | `/api/bean/*` | 源码（`@RestController`）→ 编译 → `DynamoBean.registerController` → 浏览器立刻可路由；注销后访问 404；列表显示当前注册的 controller 及其路由 |
+| 4. DynamoRuntime | `/api/runtime/*` | 开 session → session 内 compile / instantiate / invoke / registerController / unregisterController；关 session 后 Bean 仍在容器中 |
 
 ### 关键文件
 
 ```
-dynamic-loader-utility-test/src/main/
+dynamo-spring-test/src/main/
 ├── java/cn/wubo/dynamic/loader/utility/demo/
 │   ├── DemoApp.java                    @SpringBootApplication 启动器
 │   ├── InstanceRegistry.java           集中管理实例/代理/session 状态
@@ -341,17 +334,17 @@ curl -i http://localhost:8080/api/dyn   # → HTTP/1.1 404
 
 ### 与 `test-jar` 的关系
 
-`dynamic-loader-utility-test` 同时生成 default-jar（demo 应用，可直接 `java -jar`）和 test-jar（IT 设施，给消费方复用）。两套产物互不影响：
+`dynamo-spring-test` 同时生成 default-jar（demo 应用，可直接 `java -jar`）和 test-jar（IT 设施，给消费方复用）。两套产物互不影响：
 - 普通 `mvn install` 把 default-jar 入本地仓库；
 - IT 用 `mvn verify` 走 failsafe，作用在 test-jar 之外的另一个分类下。
 
-DemoApp 与 TestApp 是两个独立的 `@SpringBootApplication`：`DemoApp` 在 `cn.wubo.dynamic.loader.utility.demo` 包下（main classpath，供 `spring-boot:run`），`TestApp` 在 `cn.wubo.dynamic.loader.utility` 包下（test classpath，IT 启动器）。
+DemoApp 与 TestApp 是两个独立的 `@SpringBootApplication`：`DemoApp` 在 `cn.wubo.dynamo.spring.demo` 包下（main classpath，供 `spring-boot:run`），`TestApp` 在 `cn.wubo.dynamo.spring` 包下（test classpath，IT 启动器）。
 
 ## 测试覆盖维度
 
 | 维度 | 说明 |
 | --- | --- |
-| **核心 API** | `DynamicRuntime` / `DynamicClassLoader` / `DynamicProxy` 主路径 |
+| **核心 API** | `DynamoRuntime` / `DynamoClassLoader` / `DynamoProxy` 主路径 |
 | **并发** | 8 线程 × 20 编译并行加载；多实例隔离；compile-vs-close race |
 | **生命周期** | close 幂等；close 后操作；Bean 跨 close 保留 |
 | **边界 / 错误恢复** | 空源码 / 注释 / Unicode 类名 / 接口 / 枚举 / 重复注册 / 不存在注销 |

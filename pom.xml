@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.wb04307201</groupId>
-    <artifactId>dynamic-loader-utility-parent</artifactId>
+    <artifactId>dynamo-spring-parent</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
-    <name>dynamic-loader-utility-parent</name>
-    <description>动态加载器工具包：动态编译 + AOP 代理 + Spring Bean 管理。自 1.0 起拆分为 core + spring-boot-starter + test 三模块。</description>
+    <name>dynamo-spring-parent</name>
+    <description>dynamo-spring 工具包：动态编译 + AOP 代理 + Spring Bean 管理。自 1.0 起拆分为 core + spring-boot-starter + test 三模块。</description>
     <url>https://github.com/wb04307201/dynamic-loader-utility</url>
 
     <developers>
@@ -33,9 +33,9 @@
     </scm>
 
     <modules>
-        <module>dynamic-loader-utility-core</module>
-        <module>dynamic-loader-utility-spring-boot-starter</module>
-        <module>dynamic-loader-utility-test</module>
+        <module>dynamo-spring-core</module>
+        <module>dynamo-spring-spring-boot-starter</module>
+        <module>dynamo-spring-test</module>
     </modules>
 
     <properties>
@@ -81,12 +81,12 @@
             <!-- logback 由 Spring Boot BOM 统一管理（3.5.3 → 1.5.18），不要在此显式覆盖版本 -->
             <dependency>
                 <groupId>io.github.wb04307201</groupId>
-                <artifactId>dynamic-loader-utility-core</artifactId>
+                <artifactId>dynamo-spring-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.wb04307201</groupId>
-                <artifactId>dynamic-loader-utility-spring-boot-starter</artifactId>
+                <artifactId>dynamo-spring-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
