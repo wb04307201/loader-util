@@ -100,6 +100,7 @@
                     <includes>
                         <include>**/*IT.java</include>
                     </includes>
+                    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
                 </configuration>
                 <executions>
                     <execution>
