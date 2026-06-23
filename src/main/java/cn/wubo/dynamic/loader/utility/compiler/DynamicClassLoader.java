@@ -111,8 +111,7 @@ public class DynamicClassLoader extends URLClassLoader implements AutoCloseable 
     public Class<?> compileAndLoad(String sourceCode, CompilerOptions opts) {
         CompilationResult result = compile(sourceCode, opts);
         if (!result.isSuccess()) {
-            CompilationException ex = new CompilationException(result.getErrorMessage());
-            throw ex;
+            throw new CompilationException(result.getErrorMessage(), result);
         }
         return result.getCompiledClass();
     }
@@ -133,8 +132,12 @@ public class DynamicClassLoader extends URLClassLoader implements AutoCloseable 
 
     public synchronized void addJarPath(String jarPath) {
         checkNotClosed();
+        File jarFile = new File(jarPath);
+        if (!jarFile.isFile()) {
+            throw new CompilationException("JAR not found: " + jarPath);
+        }
         try {
-            addURL(new URL("jar:file:" + new File(jarPath).getAbsolutePath() + "!/"));
+            addURL(new URL("jar:file:" + jarFile.getAbsolutePath() + "!/"));
         } catch (MalformedURLException e) {
             throw new CompilationException("Invalid jar path: " + jarPath, e);
         }
@@ -143,6 +146,19 @@ public class DynamicClassLoader extends URLClassLoader implements AutoCloseable 
     public void addJarPaths(String... jarPaths) {
         for (String p : jarPaths) {
             addJarPath(p);
+        }
+    }
+
+    /**
+     * Adds a resource directory (not a JAR) to the classpath.
+     * @param path filesystem path to a directory containing .class files or resources
+     */
+    public synchronized void addResourcePath(String path) {
+        checkNotClosed();
+        try {
+            addURL(new File(path).toURI().toURL());
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid resource path: " + path, e);
         }
     }
 
