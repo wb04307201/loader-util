@@ -1,8 +1,8 @@
-# Dynamic Loader Utility 2.0 动态加载器工具包
+# Dynamic Loader Utility 动态加载器工具包
 
-> 一个用于动态加载和管理 Java 类的工具库，支持动态编译、AOP 代理、Spring Bean 管理。2.0 全面重写：会话模型 ClassLoader、ByteBuddy 代理、子类化 Spring MVC、自动配置。
+> 一个用于动态加载和管理 Java 类的工具库，支持动态编译、AOP 代理、Spring Bean 管理。会话模型 ClassLoader、ByteBuddy 代理、子类化 Spring MVC、自动配置。
 
-[![](https://jitpack.io/v/com.gitee.wb04307201/dynamic-loader-utility.svg)](https://jitpack.io/#com.gitee.wb04307201/dynamic-loader-utility)
+[![](https://jitpack.io/v/io.github.wb04307201/dynamic-loader-utility.svg)](https://jitpack.io/#io.github.wb04307201/dynamic-loader-utility)
 ![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg)
 ![JDK](https://img.shields.io/badge/JDK-17+-green.svg)
 ![SpringBoot](https://img.shields.io/badge/Spring%20Boot-3.5+-green.svg)
@@ -20,9 +20,9 @@
 </repositories>
 
 <dependency>
-    <groupId>com.gitee.wb04307201</groupId>
+    <groupId>io.github.wb04307201</groupId>
     <artifactId>dynamic-loader-utility</artifactId>
-    <version>2.0.0</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -42,7 +42,7 @@ try (DynamicRuntime runtime = DynamicRuntime.create()) {
 
 ### 1. 动态编译（`compiler` 包）
 
-`DynamicClassLoader` 替代 1.x 的单例 `ByteArrayClassLoader`。每个实例独立持有 classpath、字节码缓存、文件管理器。
+`DynamicClassLoader` 会话模型 ClassLoader——每个实例独立持有 classpath、字节码缓存、文件管理器。
 
 ```java
 import cn.wubo.dynamic.loader.utility.compiler.CompilationResult;
@@ -91,7 +91,7 @@ try {
 
 ### 2. AOP 代理（`aspect` 包）
 
-ByteBuddy 替代 CGLIB。`IAdvice` 三方法接口与 1.x `IAspect` 相同。
+基于 ByteBuddy 的代理。`IAdvice` 三方法切面接口。
 
 ```java
 import cn.wubo.dynamic.loader.utility.aspect.DynamicProxy;
@@ -138,7 +138,7 @@ DynamicBean.registerSingleton(bf, "myBean", MyBean.class);
 DynamicBean.unregisterSingleton(bf, "myBean");
 ```
 
-> **关于 `refreshController`**：2.0 中 `refreshController(bf, name, type)` 等价于 `registerController`——
+> **关于 `refreshController`**：`refreshController(bf, name, type)` 等价于 `registerController`——
 > 它会注册新类型的路由，但**不清理**旧路由。如需真正替换，请先 `unregisterController` 再注册。
 
 ### 4. DynamicRuntime 高级门面
@@ -178,25 +178,6 @@ try (DynamicRuntime runtime = DynamicRuntime.create(customParent)) { ... }
 ```properties
 spring.autoconfigure.exclude=cn.wubo.dynamic.loader.utility.bean.DynamicBeanAutoConfiguration
 ```
-
-## 从 1.x 迁移到 2.0
-
-2.0 是**完全 breaking** 的升级。API 变化如下：
-
-| 1.x | 2.0 | 迁移说明 |
-| --- | --- | --- |
-| `DynamicCompiler.compileAndLoad(s)` | `runtime.compileAndLoad(s)` 或 `loader.compileAndLoad(s)` | 实例方法 |
-| `DynamicCompiler.addJarPath(p)` | `runtime.addJarPath(p)` 或 `loader.addJarPath(p)` | 实例化 |
-| `DynamicCompiler.addJarPaths(...)` | `loader.addJarPaths(...)` | 一致 |
-| `DynamicAspect.proxy(t, a)` | `DynamicProxy.proxy(t, advice)` | 类名 + 接口名 |
-| `SimpleAspect` | `SimpleAdvice` | 改名 |
-| `IAspect` | `IAdvice` | 改名 |
-| `DynamicBean.unregisterController(bf, name, type)` | 先 `unregisterController(bf, name)` 再 `registerController(bf, name, type)` | 语义修正：不自动清理旧路由 |
-| `DynamicBean.refreshController(bf, name, type)` | 同上 | 同语义修正 |
-| `ByteArrayClassLoader` 单例 | `DynamicClassLoader` 实例 | 全面无单例 |
-| `CompilerRuntimeException` | `CompilationException` | 改名 |
-| `BeanRuntimeException` | `BeanRegistrationException` | 改名 |
-| 无 `defineClass` | `loader.defineClass(name, bytes)` | 新增：直接喂字节码 |
 
 ## 生产环境 classpath 配置
 
