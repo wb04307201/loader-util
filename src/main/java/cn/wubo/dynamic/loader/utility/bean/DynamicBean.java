@@ -1,6 +1,5 @@
 package cn.wubo.dynamic.loader.utility.bean;
 
-import cn.wubo.dynamic.loader.utility.exception.BeanRegistrationException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
