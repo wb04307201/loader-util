@@ -1,47 +1,16 @@
-# Dynamic Loader Utility 动态加载器工具包
+# Dynamic Loader Utility 2.0 动态加载器工具包
 
-> 一个用于动态加载和管理Java类的工具库，支持动态编译、AOP代理和Spring Bean管理功能。
+> 一个用于动态加载和管理 Java 类的工具库，支持动态编译、AOP 代理、Spring Bean 管理。2.0 全面重写：会话模型 ClassLoader、ByteBuddy 代理、子类化 Spring MVC、自动配置。
 
 [![](https://jitpack.io/v/com.gitee.wb04307201/dynamic-loader-utility.svg)](https://jitpack.io/#com.gitee.wb04307201/dynamic-loader-utility)
-[![star](https://gitee.com/wb04307201/dynamic-loader-utility/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/dynamic-loader-utility)
-[![fork](https://gitee.com/wb04307201/dynamic-loader-utility/badge/fork.svg?theme=dark)](https://gitee.com/wb04307201/dynamic-loader-utility)
-[![star](https://img.shields.io/github/stars/wb04307201/dynamic-loader-utility)](https://github.com/wb04307201/dynamic-loader-utility)
-[![fork](https://img.shields.io/github/forks/wb04307201/dynamic-loader-utility)](https://github.com/wb04307201/dynamic-loader-utility)  
-![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg) ![JDK](https://img.shields.io/badge/JDK-17+-green.svg) ![SpringBoot](https://img.shields.io/badge/Srping%20Boot-3+-green.svg)
-
-## 代码示例
-- [一键生成单表维护界面AI项目](https://gitee.com/wb04307201/one-table-ai)  
-  这是一个基于Spring Boot和AI技术的一键生成单表维护界面的应用。用户只需描述业务需求，系统会自动分析需求并生成相应的Java实体类和Web界面。  
-  <img src="img_7.gif" width="300" alt="示例图片">
-
-## 功能特性
-
-### 1. 动态编译器 (`compiler`包)
-- 支持在运行时动态编译Java源代码
-- 内存中编译，无需生成.class文件
-- 支持自定义编译选项
-- 支持加载外部JAR包依赖
-
-主要类：
-- [DynamicCompiler](src\main\java\cn\wubo\dynamic\loader\utility\compiler\DynamicCompiler.java#L15-L139): 核心编译器，提供编译和加载功能
-- [CompilerOptions](src\main\java\cn\wubo\dynamic\loader\utility\compiler\CompilerOptions.java#L5-L51): 编译选项构建器
-- [ByteArrayClassLoader](src\main\java\cn\wubo\dynamic\loader\utility\compiler\ByteArrayClassLoader.java#L7-L51): 字节数组类加载器
-
-### 2. AOP代理 ([aspect](src\main\java\cn\wubo\dynamic\loader\utility\aspect\AspectHandler.java#L11-L11)包)
-基于CGLIB实现的面向切面编程支持：
-- [IAspect](src\main\java\cn\wubo\dynamic\loader\utility\aspect\IAspect.java#L7-L36): 切面接口，定义前置、后置和异常处理方法
-- [SimpleAspect](src\main\java\cn\wubo\dynamic\loader\utility\aspect\SimpleAspect.java#L10-L44): 简单实现，提供方法执行时间统计
-- [DynamicAspect](src\main\java\cn\wubo\dynamic\loader\utility\aspect\DynamicAspect.java#L4-L26): 动态代理工厂类
-- [AspectHandler](src\main\java\cn\wubo\dynamic\loader\utility\aspect\AspectHandler.java#L8-L42): 方法拦截处理器
-
-### 3. Spring Bean管理 (`bean`包)
-提供对Spring容器中Bean的动态注册和注销功能：
-- [DynamicBean](src\main\java\cn\wubo\dynamic\loader\utility\bean\DynamicBean.java#L15-L102): 动态Bean管理工具类
-- 支持控制器Bean的注册和注销
-- 支持请求映射的动态更新
+![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg)
+![JDK](https://img.shields.io/badge/JDK-17+-green.svg)
+![SpringBoot](https://img.shields.io/badge/Spring%20Boot-3.5+-green.svg)
 
 ## 快速开始
-### 增加 JitPack 仓库
+
+### Maven 依赖
+
 ```xml
 <repositories>
     <repository>
@@ -49,97 +18,177 @@
         <url>https://jitpack.io</url>
     </repository>
 </repositories>
-```
-### 引入依赖
-```xml
+
 <dependency>
     <groupId>com.gitee.wb04307201</groupId>
     <artifactId>dynamic-loader-utility</artifactId>
-    <version>1.2.1</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
-## 使用示例
+### 5 行跑通
 
-### 动态编译和加载类
 ```java
-String sourceCode = "public class HelloWorld { public void sayHello() { System.out.println(\"Hello, World!\"); } }";
-try {
-    Class<?> clazz = DynamicCompiler.compileAndLoad(sourceCode);
-    Object instance = clazz.newInstance();
-    Method method = clazz.getMethod("sayHello");
-    method.invoke(instance);
-} catch (Exception e) {
-    e.printStackTrace();
+try (DynamicRuntime runtime = DynamicRuntime.create()) {
+    Class<?> clazz = runtime.compileAndLoad("public class A { public String hi() { return \"hi\"; } }");
+    Object o = clazz.getDeclaredConstructor().newInstance();
+    System.out.println(o.getClass().getMethod("hi").invoke(o));
 }
 ```
 
-### 使用AOP代理
+## 三大能力
+
+### 1. 动态编译（`compiler` 包）
+
+`DynamicClassLoader` 替代 1.x 的单例 `ByteArrayClassLoader`。每个实例独立持有 classpath、字节码缓存、文件管理器。
+
 ```java
-// 创建目标对象
-MyService target = new MyService();
-// 创建切面
-SimpleAspect aspect = new SimpleAspect();
-// 创建代理对象
-MyService proxy = DynamicAspect.proxy(target, aspect);
-// 调用方法，将自动应用切面逻辑
-proxy.doSomething();
+try (DynamicClassLoader loader = DynamicClassLoader.create()) {
+    CompilationResult result = loader.compile(sourceCode);
+    if (result.isSuccess()) {
+        Class<?> clazz = result.getCompiledClass();
+        // ...
+    } else {
+        result.getDiagnostics().forEach(System.err::println);
+    }
+}
 ```
 
-
-### 动态Bean管理
+新增选项：
 ```java
-// 注册Bean
-DynamicBean.registerSingleton(beanFactory, "myBean", MyBeanClass.class);
-// 注销Bean
-DynamicBean.unregisterSingleton(beanFactory, "myBean");
+loader.compile(source, CompilerOptions.create()
+    .sourceVersion("17")
+    .targetVersion("17")
+    .classpath("/path/to/lib.jar")
+    .enablePreview());
 ```
 
-## 生产环境进行动态编译
-因为本地和服务器的差异导致classpath路径不同，  
-进而使服务上动态编译class时会发生找不到import类的异常，  
-因此需要对maven编译配置和启动命令做出一定的修改  
-### 1. maven编译配置增加如下部分
+### 2. AOP 代理（`aspect` 包）
+
+ByteBuddy 替代 CGLIB。`IAdvice` 三方法接口与 1.x `IAspect` 相同。
+
+```java
+IAdvice advice = new IAdvice() {
+    public void before(Object t, Method m, Object[] a) { /* ... */ }
+    public void after(Object t, Method m, Object[] a, Object r) { /* ... */ }
+    public void afterThrow(Object t, Method m, Object[] a, Throwable c) { /* ... */ }
+};
+MyService proxy = DynamicProxy.proxy(target, advice);
+```
+
+或用内置 `SimpleAdvice`（线程安全，基于 `ThreadLocal`）：
+
+```java
+MyService proxy = DynamicProxy.proxy(MyService.class, new SimpleAdvice());
+```
+
+### 3. Spring Bean 管理（`bean` 包）
+
+不反射 Spring 私有 API——通过子类化 `RequestMappingHandlerMapping` 实现。
+
+```java
+DefaultListableBeanFactory bf = (DefaultListableBeanFactory) ctx.getBeanFactory();
+
+// 注册 controller（bean + 路由）
+DynamicBean.registerController(bf, "myCtrl", MyController.class);
+// 注销 controller（只移除路由，bean 定义保留）
+DynamicBean.unregisterController(bf, "myCtrl");
+// 重新注册（重置类型 + 重新探测映射）
+DynamicBean.refreshController(bf, "myCtrl", NewType.class);
+```
+
+### 4. DynamicRuntime 高级门面
+
+把三件套粘到一个生命周期里：
+
+```java
+try (DynamicRuntime runtime = DynamicRuntime.withBeanFactory(beanFactory)) {
+    Class<?> controller = runtime.compileAndLoad(sourceCode);
+    runtime.registerController("dynamicCtrl", controller);
+    // 路由已生效
+}
+// ClassLoader 关闭后，Bean 仍在容器中（由 Spring 生命周期管理）
+```
+
+## Spring Boot 自动配置
+
+引入依赖后自动激活。无需 `@EnableXxx`、无需 `@Import`：
+
+- `WebMvcRegistrations` 替换默认 `RequestMappingHandlerMapping` 为 `DynamicRequestMappingHandlerMapping`
+- `spring.mvc.*` 所有属性继续生效
+
+如果需要禁用：
+```properties
+spring.autoconfigure.exclude=cn.wubo.dynamic.loader.utility.bean.DynamicBeanAutoConfiguration
+```
+
+## 从 1.x 迁移到 2.0
+
+2.0 是**完全 breaking** 的升级。API 变化如下：
+
+| 1.x | 2.0 | 迁移说明 |
+| --- | --- | --- |
+| `DynamicCompiler.compileAndLoad(s)` | `runtime.compileAndLoad(s)` 或 `loader.compileAndLoad(s)` | 实例方法 |
+| `DynamicCompiler.addJarPath(p)` | `runtime.addJarPath(p)` 或 `loader.addJarPath(p)` | 实例化 |
+| `DynamicAspect.proxy(t, a)` | `DynamicProxy.proxy(t, advice)` | 类名 + 接口名 |
+| `SimpleAspect` | `SimpleAdvice` | 改名 |
+| `IAspect` | `IAdvice` | 改名 |
+| `DynamicBean.unregisterController(bf, name, type)` | `DynamicBean.refreshController(bf, name, type)` | 改名 + 修正语义 |
+| `ByteArrayClassLoader` 单例 | `DynamicClassLoader` 实例 | 全面无单例 |
+| `CompilerRuntimeException` | `CompilationException` | 改名 |
+| `BeanRuntimeException` | `BeanRegistrationException` | 改名 |
+
+## 生产环境 classpath 配置
+
+因为本地和服务器的 classpath 路径差异，服务上动态编译可能找不到 import 的类。
+请在消费方项目的 `pom.xml` 加：
+
 ```xml
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <!-- 是否要把第三方jar加入到类构建路径 -->
-                            <addClasspath>true</addClasspath>
-                            <!-- 外部依赖jar包的最终位置 -->
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <!--指定jar程序入口-->
-                            <mainClass>cn.wubo.loaderutiltest.LoaderUtilTestApplication</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <!-- lib依赖包输出目录，打包的时候不打进jar包里 -->
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <excludeTransitive>false</excludeTransitive>
-                            <stripVersion>false</stripVersion>
-                            <includeScope>runtime</includeScope>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <configuration>
+        <archive>
+            <manifest>
+                <addClasspath>true</addClasspath>
+                <classpathPrefix>lib/</classpathPrefix>
+            </manifest>
+        </archive>
+    </configuration>
+</plugin>
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals><goal>copy-dependencies</goal></goals>
+            <configuration>
+                <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                <stripVersion>false</stripVersion>
+                <includeScope>runtime</includeScope>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
 ```
-### 2. 执行编译命令，会在jar包的同级目录下生成lib文件夹存放依赖包
-### 3. 将jar包和lib文件夹上到服务器，并在启动命令中增加`-Dloader.path=lib/`
+
+启动时：
+
 ```shell
-java -jar -Dloader.path=lib/ loader-util-test-0.0.1-SNAPSHOT.jar
+java -jar -Dloader.path=lib/ your-app.jar
 ```
+
+## 构建、测试、CI
+
+```bash
+mvn -B test       # 单元测试
+mvn -B verify     # 单元 + 集成测试
+```
+
+CI：GitHub Actions 跑在 `ubuntu-latest` + JDK 17 上，push 与 PR 都触发。
+
+## 许可证
+
+Apache License 2.0
