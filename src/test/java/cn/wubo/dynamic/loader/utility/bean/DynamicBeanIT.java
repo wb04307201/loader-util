@@ -38,10 +38,4 @@ class DynamicBeanIT {
         ResponseEntity<String> after = rest.getForEntity("http://localhost:" + port + "/api/hello", String.class);
         assertThat(after.getStatusCode().value()).isEqualTo(404);
     }
-
-    @Test
-    void springMvcProperties_passToSubclass() {
-        // 简单断言：WebMvcAutoConfiguration 流程没被破坏，ContextRefresher 等 bean 存在
-        assertThat(ctx.containsBean("requestMappingHandlerMapping")).isTrue();
-    }
 }

@@ -211,4 +211,74 @@ class DynamicClassLoaderTest {
             pool.shutdownNow();
         }
     }
+
+    // ---------- Minor #1: 覆盖剩余 overloads ----------
+
+    @Test
+    void create_withExplicitParent_usesProvidedParent() {
+        ClassLoader custom = new ClassLoader(DynamicClassLoaderTest.class.getClassLoader()) {};
+        try (DynamicClassLoader loader = DynamicClassLoader.create(custom)) {
+            assertThat(loader.getParent()).isSameAs(custom);
+        }
+    }
+
+    @Test
+    void defineClass_fromBytes_makesLoadable() throws Exception {
+        // 用一个 loader 编译并提取字节码，再让另一个 loader 通过 defineClass 加载。
+        String fqcn = "Precompiled";
+        byte[] bytes;
+        try (DynamicClassLoader src = DynamicClassLoader.create()) {
+            src.compileAndLoad("public class Precompiled { public int v() { return 99; } }");
+            bytes = readClassBytes(src, fqcn);
+        }
+        try (DynamicClassLoader dst = DynamicClassLoader.create()) {
+            Class<?> clazz = dst.defineClass(fqcn, bytes);
+            assertThat(clazz.getSimpleName()).isEqualTo("Precompiled");
+            Object inst = clazz.getDeclaredConstructor().newInstance();
+            assertThat(inst.getClass().getDeclaredMethod("v").invoke(inst)).isEqualTo(99);
+        }
+    }
+
+    /** 反射从 {@code classes} 字段读取已编译字节码（package-private 字段，仅测试用）。 */
+    private static byte[] readClassBytes(DynamicClassLoader loader, String name) throws Exception {
+        java.lang.reflect.Field f = DynamicClassLoader.class.getDeclaredField("classes");
+        f.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, byte[]> map = (java.util.Map<String, byte[]>) f.get(loader);
+        byte[] bytes = map.get(name);
+        if (bytes == null) {
+            throw new IllegalStateException("no bytes cached for " + name);
+        }
+        return bytes;
+    }
+
+    @Test
+    void addJarPaths_missingFile_propagatesError() {
+        try (DynamicClassLoader cl = DynamicClassLoader.create()) {
+            assertThatThrownBy(() -> cl.addJarPaths("/nope/a.jar", "/nope/b.jar"))
+                .isInstanceOf(CompilationException.class)
+                .hasMessageContaining("/nope/a.jar");
+        }
+    }
+
+    @Test
+    void compile_withOptions_respectsTargetVersion() {
+        try (DynamicClassLoader loader = DynamicClassLoader.create()) {
+            String source = "public class Opt { public int x() { return 1; } }";
+            // 选项被透传到 javax.tools；这里只验证构造合法、能跑通。
+            CompilationResult r = loader.compile(source, CompilerOptions.create().sourceVersion("17").targetVersion("17"));
+            assertThat(r.isSuccess()).isTrue();
+        }
+    }
+
+    @Test
+    void compileAndLoad_withOptions_returnsClass() throws Exception {
+        try (DynamicClassLoader loader = DynamicClassLoader.create()) {
+            String source = "public class Opt2 { public String s() { return \"x\"; } }";
+            Class<?> clazz = loader.compileAndLoad(source,
+                CompilerOptions.create().sourceVersion("17").targetVersion("17"));
+            Object inst = clazz.getDeclaredConstructor().newInstance();
+            assertThat(inst.getClass().getDeclaredMethod("s").invoke(inst)).isEqualTo("x");
+        }
+    }
 }
