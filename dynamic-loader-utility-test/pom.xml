@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.wb04307201</groupId>
+        <artifactId>dynamic-loader-utility-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>dynamic-loader-utility-test</artifactId>
+    <name>dynamic-loader-utility-test</name>
+    <packaging>jar</packaging>
+    <description>Spring Boot 集成测试模块：*IT 测试 + TestApp 启动器。生成 test-jar 可被消费方复用为测试基础设施。</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.wb04307201</groupId>
+            <artifactId>dynamic-loader-utility-spring-boot-starter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                无 src/main：禁用 default-jar，仅生成 test-jar 给消费者复用 TestApp / IT 基类。
+                消费者在 demo 项目里这样引：
+                  <dependency>
+                      <groupId>io.github.wb04307201</groupId>
+                      <artifactId>dynamic-loader-utility-test</artifactId>
+                      <version>1.0.0</version>
+                      <type>test-jar</type>
+                      <scope>test</scope>
+                  </dependency>
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>test-jar</id>
+                        <goals><goal>test-jar</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
