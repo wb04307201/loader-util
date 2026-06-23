@@ -263,6 +263,90 @@ mvn -B verify -pl dynamic-loader-utility-test -am
 
 CI：GitHub Actions 跑在 `ubuntu-latest` + JDK 17 上，push 与 PR 都触发。
 
+## 演示应用
+
+`dynamic-loader-utility-test` 模块自带一个可启动的 Spring Boot Web 应用，把三大能力 + DynamicRuntime 高级门面拼到 4 个 tab 里，浏览器里直接玩：
+
+```bash
+# 安装所有模块到本地仓库（首次需要；spring-boot:run 依赖 starter 模块的 jar）
+mvn -B install -DskipTests
+
+# 启动 demo（默认 http://localhost:8080）
+mvn -B -pl dynamic-loader-utility-test spring-boot:run \
+  -Dspring-boot.run.jvmArguments="-Dnet.bytebuddy.experimental=true"
+```
+
+> `-Dnet.bytebuddy.experimental=true` 是为了在 JDK 21+ 上启用 ByteBuddy 实验性支持；不传也能跑，但 JDK 17 下没必要。
+
+### 四个 tab 的能力
+
+| Tab | 路径前缀 | 演示 |
+| --- | --- | --- |
+| 1. 动态编译 | `/api/compile/*` | 源码 → 编译 → 加载 → 实例化 → 反射调用；列已加载实例，删除可释放 ClassLoader |
+| 2. AOP 拦截 | `/api/aspect/*` | 源码 → 编译 + 创建 ByteBuddy 代理；advice 选 `log` / `timing` / `throw`；调用时返回累积的 `before / after / afterThrow` 日志 |
+| 3. 动态 Controller | `/api/bean/*` | 源码（`@RestController`）→ 编译 → `DynamicBean.registerController` → 浏览器立刻可路由；注销后访问 404；列表显示当前注册的 controller 及其路由 |
+| 4. DynamicRuntime | `/api/runtime/*` | 开 session → session 内 compile / instantiate / invoke / registerController / unregisterController；关 session 后 Bean 仍在容器中 |
+
+### 关键文件
+
+```
+dynamic-loader-utility-test/src/main/
+├── java/cn/wubo/dynamic/loader/utility/demo/
+│   ├── DemoApp.java                    @SpringBootApplication 启动器
+│   ├── InstanceRegistry.java           集中管理实例/代理/session 状态
+│   ├── CompileController.java          Tab 1
+│   ├── AspectController.java           Tab 2
+│   ├── BeanController.java             Tab 3
+│   ├── RuntimeController.java          Tab 4
+│   ├── GlobalExceptionHandler.java     把 4xx/5xx 翻译成统一 JSON
+│   ├── ArgsHelper.java                 反射调用辅助（findMethod / coerceArgs）
+│   └── advice/
+│       ├── LoggingAdvice.java          log：记录全部三阶段
+│       ├── TimingAdvice.java           timing：ThreadLocal StopWatch
+│       └── ThrowAdvice.java            throw：被动记录，让源方法自己抛以触发 afterThrow
+└── resources/
+    ├── application.yml                 server.port=8080
+    └── static/
+        ├── index.html                  单页 4 tab
+        ├── app.js                      原生 JS（fetch）
+        └── styles.css
+```
+
+### 端到端示例（curl）
+
+```bash
+# Tab 1：编译 Greeter.greet("alice") → "hi alice"
+curl -X POST http://localhost:8080/api/compile/load \
+  -H 'Content-Type: application/json' \
+  -d '{"source":"public class G { public String greet(String n){return \"hi \"+n;} }"}'
+# 返回 {"id":"...","className":"G","methods":[...]}
+
+curl -X POST http://localhost:8080/api/compile/invoke \
+  -H 'Content-Type: application/json' \
+  -d '{"id":"...","methodName":"greet","args":["alice"]}'
+# 返回 {"result":"hi alice","resultType":"java.lang.String"}
+
+# Tab 3：动态注册 controller
+curl -X POST http://localhost:8080/api/bean/register \
+  -H 'Content-Type: application/json' \
+  -d '{"beanName":"dynCtrl","source":"@org.springframework.web.bind.annotation.RestController public class DynCtrl { @org.springframework.web.bind.annotation.GetMapping(\"/api/dyn\") public String dyn(){return \"dynamic\";} }"}'
+
+curl http://localhost:8080/api/dyn       # → "dynamic"
+
+curl -X POST http://localhost:8080/api/bean/unregister \
+  -H 'Content-Type: application/json' -d '{"beanName":"dynCtrl"}'
+
+curl -i http://localhost:8080/api/dyn   # → HTTP/1.1 404
+```
+
+### 与 `test-jar` 的关系
+
+`dynamic-loader-utility-test` 同时生成 default-jar（demo 应用，可直接 `java -jar`）和 test-jar（IT 设施，给消费方复用）。两套产物互不影响：
+- 普通 `mvn install` 把 default-jar 入本地仓库；
+- IT 用 `mvn verify` 走 failsafe，作用在 test-jar 之外的另一个分类下。
+
+DemoApp 与 TestApp 是两个独立的 `@SpringBootApplication`：`DemoApp` 在 `cn.wubo.dynamic.loader.utility.demo` 包下（main classpath，供 `spring-boot:run`），`TestApp` 在 `cn.wubo.dynamic.loader.utility` 包下（test classpath，IT 启动器）。
+
 ## 测试覆盖维度
 
 | 维度 | 说明 |

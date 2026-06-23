@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dynamic-loader-utility demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>dynamic-loader-utility demo</h1>
+    <p class="subtitle">Spring Boot playground for 动态编译 · AOP · 动态 Controller · DynamicRuntime</p>
+    <nav>
+        <button class="tab-btn active" data-tab="compile">1. 动态编译</button>
+        <button class="tab-btn" data-tab="aspect">2. AOP 拦截</button>
+        <button class="tab-btn" data-tab="bean">3. 动态 Controller</button>
+        <button class="tab-btn" data-tab="runtime">4. DynamicRuntime</button>
+    </nav>
+</header>
+
+<main>
+    <!-- ============== Tab 1: 动态编译 ============== -->
+    <section id="tab-compile" class="tab">
+        <h2>1. 动态编译 + 反射调用</h2>
+        <p class="hint">输入 Java 源码（必须含 package 声明或默认 package 下第一个类型）→ 编译 + 加载 + 实例化 → 反射调用方法。</p>
+        <label>Java 源码</label>
+        <textarea id="compile-source" rows="8">public class Greeter {
+    public String greet(String name) { return "hi " + name; }
+    public int add(int a, int b) { return a + b; }
+}</textarea>
+        <button onclick="compileLoad()">编译并加载</button>
+        <pre id="compile-result" class="result"></pre>
+
+        <h3>已加载实例</h3>
+        <button class="mini" onclick="compileListInstances()">刷新列表</button>
+        <ul id="compile-instance-list" class="instance-list"></ul>
+
+        <div class="row">
+            <label>实例 ID</label>
+            <select id="compile-invoke-id"></select>
+            <label>方法名</label>
+            <input id="compile-invoke-method" placeholder="greet">
+            <label>参数（逗号分隔）</label>
+            <input id="compile-invoke-args" placeholder="alice">
+            <button onclick="compileInvoke()">调用</button>
+            <button class="danger" onclick="compileRemove()">删除</button>
+        </div>
+        <pre id="compile-invoke-result" class="result"></pre>
+    </section>
+
+    <!-- ============== Tab 2: AOP ============== -->
+    <section id="tab-aspect" class="tab hidden">
+        <h2>2. AOP 拦截（ByteBuddy 代理）</h2>
+        <p class="hint">编译源码 → 创建代理对象（选 advice 类型）→ 调用方法时按 before → method → after / afterThrow 触发。</p>
+        <label>Java 源码（throw 模式下让自己的方法抛异常即可看到 afterThrow）</label>
+        <textarea id="aspect-source" rows="6">public class Calc {
+    public int add(int a, int b) { return a + b; }
+    public String boom() { throw new RuntimeException("boom from source"); }
+}</textarea>
+        <label>Advice 类型</label>
+        <select id="aspect-advice-type">
+            <option value="log">log（记录 before/after/afterThrow）</option>
+            <option value="timing">timing（StopWatch 计时）</option>
+            <option value="throw">throw（让源方法自己抛异常以触发 afterThrow）</option>
+        </select>
+        <button onclick="aspectProxy()">编译 + 创建代理</button>
+        <pre id="aspect-result" class="result"></pre>
+
+        <h3>已创建代理</h3>
+        <button class="mini" onclick="aspectListProxies()">刷新列表</button>
+        <ul id="aspect-proxy-list" class="instance-list"></ul>
+
+        <div class="row">
+            <label>代理 ID</label>
+            <select id="aspect-invoke-id"></select>
+            <label>方法名</label>
+            <input id="aspect-invoke-method" placeholder="add">
+            <label>参数（逗号分隔）</label>
+            <input id="aspect-invoke-args" placeholder="2,3">
+            <button onclick="aspectInvoke()">调用</button>
+            <button class="mini" onclick="aspectLogs()">仅看日志</button>
+            <button class="danger" onclick="aspectRemove()">删除</button>
+        </div>
+        <pre id="aspect-invoke-result" class="result"></pre>
+    </section>
+
+    <!-- ============== Tab 3: 动态 Controller ============== -->
+    <section id="tab-bean" class="tab hidden">
+        <h2>3. 动态注册 Controller</h2>
+        <p class="hint">编译源码 → <code>DynamicBean.registerController</code> → Spring MVC 立刻可路由。注销后访问 404。</p>
+        <label>Bean 名称</label>
+        <input id="bean-name" value="demoCtrl">
+        <label>Controller 源码（必须 <code>@RestController</code> + 至少一个 <code>@GetMapping</code>）</label>
+        <textarea id="bean-source" rows="8">@org.springframework.web.bind.annotation.RestController
+public class DemoCtrl {
+    @org.springframework.web.bind.annotation.GetMapping("/api/demo")
+    public String hello() { return "hello from dynamic controller"; }
+}</textarea>
+        <button onclick="beanRegister()">编译并注册</button>
+        <pre id="bean-result" class="result"></pre>
+
+        <h3>当前 demo 注册的 Controllers</h3>
+        <button class="mini" onclick="beanList()">刷新</button>
+        <ul id="bean-list" class="instance-list"></ul>
+
+        <h3>已注册路由直接试</h3>
+        <p class="hint">点下方链接测试：</p>
+        <ul id="bean-routes" class="route-list"></ul>
+    </section>
+
+    <!-- ============== Tab 4: DynamicRuntime ============== -->
+    <section id="tab-runtime" class="tab hidden">
+        <h2>4. DynamicRuntime 高级门面</h2>
+        <p class="hint">把动态编译 + 类路径管理 + Bean 注册粘合到一次生命周期内。session 内可 compile / instantiate / invoke / registerController。</p>
+
+        <div class="row">
+            <button onclick="runtimeCreateSession()">+ 新建 session</button>
+            <button class="mini" onclick="runtimeListSessions()">刷新</button>
+            <select id="runtime-session-id"></select>
+            <button class="danger" onclick="runtimeCloseSession()">关闭当前 session</button>
+        </div>
+
+        <h3>session 状态</h3>
+        <pre id="runtime-state" class="result"></pre>
+
+        <h3>在 session 内编译</h3>
+        <textarea id="runtime-source" rows="6">public class R {
+    public String tag() { return "runtime-class"; }
+}</textarea>
+        <button onclick="runtimeCompile()">compileAndLoad</button>
+        <pre id="runtime-compile-result" class="result"></pre>
+
+        <div class="row">
+            <label>classId</label>
+            <select id="runtime-class-id"></select>
+            <button onclick="runtimeInstantiate()">实例化</button>
+        </div>
+
+        <div class="row">
+            <label>instanceId</label>
+            <select id="runtime-instance-id"></select>
+            <label>方法名</label>
+            <input id="runtime-invoke-method" placeholder="tag">
+            <button onclick="runtimeInvoke()">调用</button>
+        </div>
+        <pre id="runtime-invoke-result" class="result"></pre>
+
+        <h3>注册 Controller（编译 + registerController 一步走）</h3>
+        <div class="row">
+            <label>beanName</label>
+            <input id="runtime-bean-name" value="rtCtrl">
+        </div>
+        <textarea id="runtime-controller-source" rows="6">@org.springframework.web.bind.annotation.RestController
+public class RtCtrl {
+    @org.springframework.web.bind.annotation.GetMapping("/api/rt")
+    public String rt() { return "from runtime session"; }
+}</textarea>
+        <button onclick="runtimeRegisterController()">compile + registerController</button>
+        <pre id="runtime-register-result" class="result"></pre>
+
+        <div class="row">
+            <label>注销 beanName</label>
+            <input id="runtime-unreg-name" placeholder="rtCtrl">
+            <button onclick="runtimeUnregisterController()">unregisterController</button>
+        </div>
+        <pre id="runtime-unreg-result" class="result"></pre>
+    </section>
+</main>
+
+<footer>
+    <small>dynamic-loader-utility v1.0.0 · 浏览器 F12 看 console</small>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

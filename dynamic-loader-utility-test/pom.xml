@@ -15,10 +15,16 @@
     <description>Spring Boot 集成测试模块：*IT 测试 + TestApp 启动器。生成 test-jar 可被消费方复用为测试基础设施。</description>
 
     <dependencies>
+        <!-- starter 在 main scope：demo 应用在 main classpath 启动 -->
         <dependency>
             <groupId>io.github.wb04307201</groupId>
             <artifactId>dynamic-loader-utility-spring-boot-starter</artifactId>
-            <scope>test</scope>
+        </dependency>
+
+        <!-- MVC + 内嵌 tomcat + jackson，供 demo 应用运行 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <dependency>
@@ -26,18 +32,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <!--
-                无 src/main：禁用 default-jar，仅生成 test-jar 给消费者复用 TestApp / IT 基类。
-                消费者在 demo 项目里这样引：
+                同时生成 default-jar（main 代码 + demo 应用）和 test-jar（main + IT，给消费方复用）。
+                消费者在 demo 项目里这样引 test-jar：
                   <dependency>
                       <groupId>io.github.wb04307201</groupId>
                       <artifactId>dynamic-loader-utility-test</artifactId>
@@ -51,14 +52,19 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>default-jar</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
                         <id>test-jar</id>
                         <goals><goal>test-jar</goal></goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!--
+                spring-boot:run 找不到 main 时可用 -D 显式指定：
+                  mvn spring-boot:run -pl dynamic-loader-utility-test -am \
+                      -Dspring-boot.run.main-class=cn.wubo.dynamic.loader.utility.demo.DemoApp
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

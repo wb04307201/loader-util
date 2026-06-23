@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dynamic-loader-utility-demo
+
+logging:
+  level:
+    cn.wubo.dynamic.loader.utility: INFO
+    cn.wubo.dynamic.loader.utility.demo: INFO
