@@ -44,6 +44,11 @@
                 <artifactId>byte-buddy</artifactId>
                 <version>${byte-buddy.version}</version>
             </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>6.1.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -55,6 +60,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
