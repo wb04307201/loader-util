@@ -38,6 +38,10 @@ public final class DynamicProxy {
                 .load(loader, ClassLoadingStrategy.Default.INJECTION)
                 .getLoaded();
             Constructor<? extends T> ctor = proxyClass.getDeclaredConstructor();
+            // ByteBuddy 生成的代理类的无参构造是 private/package-private 的；
+            // setAccessible(true) 用来调用它。这跟 2.0 重构移除的"反射访问 Spring
+            // 私有 API"无关——Spring 私有 API 反射仅出现在 bean 包的旧实现里，
+            // 现在已被 DynamicRequestMappingHandlerMapping 子类化取代。
             ctor.setAccessible(true);
             return ctor.newInstance();
         } catch (NoSuchMethodException e) {
