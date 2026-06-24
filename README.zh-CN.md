@@ -1,4 +1,4 @@
-# dynamo-spring dynamo-spring 工具包
+# dynamo-spring
 
 > 一个用于动态加载和管理 Java 类的工具库，支持动态编译、AOP 代理、Spring Bean 管理。会话模型 ClassLoader、ByteBuddy 代理、子类化 Spring MVC、自动配置。
 
