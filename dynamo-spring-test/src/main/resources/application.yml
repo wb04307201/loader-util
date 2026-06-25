@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dynamo-spring-demo
+
+logging:
+  level:
+    cn.wubo.dynamo.spring: INFO
+    cn.wubo.dynamo.spring.demo: INFO
