@@ -3,6 +3,10 @@
 > A Java toolkit for dynamically loading and managing Java classes — dynamic compilation, AOP proxies, and Spring Bean management. Session-scoped ClassLoader, ByteBuddy proxies, subclassed Spring MVC, and auto-configuration.
 
 ![Maven Central](https://img.shields.io/maven-central/v/io.github.wb04307201/dynamo-spring-spring-boot-starter?style=flat-square)
+[![star](https://gitee.com/wb04307201/dynamo-spring/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/dynamo-spring)
+[![fork](https://gitee.com/wb04307201/dynamo-spring/badge/fork.svg?theme=dark)](https://gitee.com/wb04307201/dynamo-spring)
+[![star](https://img.shields.io/github/stars/wb04307201/dynamo-spring)](https://github.com/wb04307201/dynamo-spring)
+[![fork](https://img.shields.io/github/forks/wb04307201/dynamo-spring)](https://github.com/wb04307201/dynamo-spring)
 ![JDK](https://img.shields.io/badge/JDK-17+-green.svg)
 ![SpringBoot](https://img.shields.io/badge/Spring%20Boot-3.5+-green.svg)
 
